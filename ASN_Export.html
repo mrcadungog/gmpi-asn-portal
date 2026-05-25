@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>GMPI Data Export</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#0A0705;color:#fff;min-height:100vh;
+  display:flex;align-items:center;justify-content:center;padding:32px}
+.wrap{width:100%;max-width:480px}
+h1{font-size:20px;font-weight:700;color:#C9A84C;margin-bottom:4px}
+.sub{font-size:12px;color:rgba(255,255,255,.4);margin-bottom:28px}
+.card{background:#1a1611;border:1px solid rgba(201,168,76,.2);border-radius:10px;padding:28px;margin-bottom:16px}
+.label{font-size:11px;font-weight:600;color:rgba(255,255,255,.4);text-transform:uppercase;
+  letter-spacing:.06em;margin-bottom:8px}
+.inp{width:100%;padding:11px 14px;border-radius:8px;border:1px solid rgba(201,168,76,.3);
+  background:#0d0b08;color:#fff;font-size:16px;text-align:center;letter-spacing:6px;
+  font-family:'Segoe UI',sans-serif}
+.inp:focus{outline:none;border-color:#C9A84C}
+.inp::placeholder{letter-spacing:0;font-size:13px;color:rgba(255,255,255,.25)}
+.btn{width:100%;padding:12px;border-radius:8px;border:none;font-size:14px;font-weight:700;
+  cursor:pointer;background:#C9A84C;color:#0A0705;transition:.2s;margin-top:12px}
+.btn:hover{background:#A07820}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-outline{background:transparent;border:1px solid rgba(201,168,76,.4);color:#C9A84C;margin-top:8px}
+.btn-outline:hover{background:rgba(201,168,76,.08);border-color:#C9A84C}
+.err-msg{font-size:12px;color:#fbbf24;margin-top:10px;text-align:center;min-height:18px}
+/* Export screen */
+.export-grid{display:flex;flex-direction:column;gap:10px}
+.export-btn{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:8px;
+  border:1px solid rgba(201,168,76,.25);background:#111;cursor:pointer;transition:.2s;text-align:left}
+.export-btn:hover{border-color:#C9A84C;background:#1a1611}
+.export-btn:disabled{opacity:.4;cursor:not-allowed}
+.export-icon{font-size:26px;flex-shrink:0}
+.export-title{font-size:14px;font-weight:700;color:#C9A84C;margin-bottom:3px}
+.export-desc{font-size:11px;color:rgba(255,255,255,.4)}
+/* Progress */
+.progress-card{background:#111;border:1px solid rgba(255,255,255,.06);border-radius:8px;
+  padding:16px;margin-top:14px;display:none}
+.progress-card.show{display:block}
+.prog-row{display:flex;align-items:center;gap:10px;padding:7px 0;font-size:13px;
+  border-bottom:1px solid rgba(255,255,255,.05)}
+.prog-row:last-child{border-bottom:none}
+.prog-dot{width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.08);
+  display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;font-weight:700}
+.prog-dot.spin{background:#D97706;animation:pulse 1s infinite}
+.prog-dot.ok{background:#059669}
+.prog-dot.err{background:#DC2626}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.prog-label{flex:1;color:rgba(255,255,255,.75)}
+.prog-count{font-size:11px;color:rgba(255,255,255,.35)}
+.done-msg{color:#4ade80;font-size:14px;font-weight:700;text-align:center;margin-top:14px;display:none}
+/* Logout */
+.logout{font-size:11px;color:rgba(255,255,255,.3);text-align:center;margin-top:12px;
+  cursor:pointer;background:none;border:none}
+.logout:hover{color:#C9A84C}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ── PIN Screen ── -->
+  <div id="screen-pin">
+    <h1>📤 GMPI Data Export</h1>
+    <div class="sub">Enter your dispatch PIN to access the export tool</div>
+    <div class="card">
+      <div class="label">Dispatch PIN</div>
+      <input type="password" id="pin-inp" class="inp" placeholder="Enter PIN" maxlength="20"
+        onkeydown="if(event.key==='Enter')doVerify()">
+      <button class="btn" id="verify-btn" onclick="doVerify()">Verify →</button>
+      <div class="err-msg" id="pin-err"></div>
+    </div>
+  </div>
+
+  <!-- ── Export Screen ── -->
+  <div id="screen-export" style="display:none">
+    <h1>📤 GMPI Data Export</h1>
+    <div class="sub">Select what to export — downloads as a single Excel file</div>
+    <div class="card">
+      <div class="export-grid">
+
+        <button class="export-btn" id="btn-si" onclick="doExport('si')">
+          <div class="export-icon">📋</div>
+          <div>
+            <div class="export-title">SI Staging</div>
+            <div class="export-desc">All records in si_staging collection</div>
+          </div>
+        </button>
+
+        <button class="export-btn" id="btn-lines" onclick="doExport('lines')">
+          <div class="export-icon">📦</div>
+          <div>
+            <div class="export-title">SO Lines</div>
+            <div class="export-desc">All records in so_lines collection</div>
+          </div>
+        </button>
+
+        <button class="export-btn" id="btn-both" onclick="doExport('both')">
+          <div class="export-icon">⬇️</div>
+          <div>
+            <div class="export-title">Export Both</div>
+            <div class="export-desc">SI Staging + SO Lines in one Excel file</div>
+          </div>
+        </button>
+
+      </div>
+
+      <!-- Progress -->
+      <div class="progress-card" id="progress-card">
+        <div class="prog-row" id="pr-si" style="display:none">
+          <div class="prog-dot" id="pd-si">1</div>
+          <div class="prog-label">Reading SI Staging…</div>
+          <div class="prog-count" id="pc-si">—</div>
+        </div>
+        <div class="prog-row" id="pr-lines" style="display:none">
+          <div class="prog-dot" id="pd-lines">2</div>
+          <div class="prog-label">Reading SO Lines…</div>
+          <div class="prog-count" id="pc-lines">—</div>
+        </div>
+        <div class="prog-row" id="pr-build" style="display:none">
+          <div class="prog-dot" id="pd-build">3</div>
+          <div class="prog-label">Building Excel file…</div>
+          <div class="prog-count" id="pc-build">—</div>
+        </div>
+      </div>
+
+      <div class="done-msg" id="done-msg">✅ Download started!</div>
+    </div>
+
+    <button class="logout" onclick="doLogout()">← Change PIN / Log out</button>
+  </div>
+
+</div>
+
+<script>
+// ── Firebase ─────────────────────────────────────────────────────
+firebase.initializeApp({
+  apiKey:            "AIzaSyBrYLBg67AxE79WDx6PPWZKRhmZwSynhFc",
+  authDomain:        "gmpi-delivery-mgt-system.firebaseapp.com",
+  projectId:         "gmpi-delivery-mgt-system",
+  storageBucket:     "gmpi-delivery-mgt-system.firebasestorage.app",
+  messagingSenderId: "231556470351",
+  appId:             "1:231556470351:web:cfa808bb4c43a2238afc3a"
+});
+const _db = firebase.firestore();
+
+// ── Helpers ──────────────────────────────────────────────────────
+async function _hash(s){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s+'GMPI_SALT_2026'));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+function setDot(id, state, count){
+  const dot = document.getElementById('pd-'+id);
+  dot.className = 'prog-dot' + (state==='spin'?' spin':state==='ok'?' ok':state==='err'?' err':'');
+  dot.textContent = state==='ok'?'✓':state==='err'?'✗':dot.textContent;
+  if(count !== undefined) document.getElementById('pc-'+id).textContent = count;
+}
+
+function showRow(id){ document.getElementById('pr-'+id).style.display='flex'; }
+
+function lockButtons(lock){
+  ['btn-si','btn-lines','btn-both'].forEach(id=>{
+    document.getElementById(id).disabled = lock;
+  });
+}
+
+// ── Read all docs from a collection (paginated, 500 at a time) ───
+async function readAll(collection){
+  const docs = [];
+  let query = _db.collection(collection)
+    .orderBy(firebase.firestore.FieldPath.documentId())
+    .limit(500);
+  while(true){
+    const snap = await query.get();
+    if(snap.empty) break;
+    snap.docs.forEach(d => docs.push(d.data()));
+    if(snap.docs.length < 500) break;
+    query = query.startAfter(snap.docs[snap.docs.length - 1]);
+  }
+  return docs;
+}
+
+// ── PIN verification ─────────────────────────────────────────────
+async function doVerify(){
+  const pin = document.getElementById('pin-inp').value.trim();
+  const errEl = document.getElementById('pin-err');
+  const btn = document.getElementById('verify-btn');
+  errEl.textContent = '';
+  if(!pin){ errEl.textContent = 'Enter your PIN.'; return; }
+  btn.disabled = true;
+  btn.textContent = 'Verifying…';
+  try{
+    const doc = await _db.collection('settings').doc('dispatch_pin').get();
+    let ok = false;
+    if(!doc.exists){
+      // Fall back to GAS
+      const r = await new Promise((res,rej)=>
+        google.script.run.withSuccessHandler(res).withFailureHandler(rej).validatePin(pin));
+      ok = r && r.ok;
+    } else {
+      ok = await _hash(pin) === doc.data().value;
+    }
+    if(ok){
+      document.getElementById('screen-pin').style.display  = 'none';
+      document.getElementById('screen-export').style.display = 'block';
+    } else {
+      errEl.textContent = 'Incorrect PIN. Try again.';
+    }
+  }catch(e){
+    errEl.textContent = 'Error: '+e.message;
+  }
+  btn.disabled = false;
+  btn.textContent = 'Verify →';
+}
+
+// ── Export ───────────────────────────────────────────────────────
+async function doExport(type){
+  lockButtons(true);
+  document.getElementById('progress-card').classList.add('show');
+  document.getElementById('done-msg').style.display = 'none';
+
+  const wb = XLSX.utils.book_new();
+  const date = new Date().toISOString().slice(0,10);
+  let filename = '';
+
+  try{
+    // SI Staging
+    if(type === 'si' || type === 'both'){
+      const rowNum = type === 'both' ? '1' : '1';
+      showRow('si');
+      setDot('si','spin');
+      const siDocs = await readAll('si_staging');
+      setDot('si','ok', siDocs.length + ' rows');
+      const siWs = siDocs.length
+        ? XLSX.utils.json_to_sheet(siDocs)
+        : XLSX.utils.aoa_to_sheet([['No data']]);
+      XLSX.utils.book_append_sheet(wb, siWs, 'SI_Staging');
+    }
+
+    // SO Lines
+    if(type === 'lines' || type === 'both'){
+      showRow('lines');
+      setDot('lines','spin');
+      const linesDocs = await readAll('so_lines');
+      setDot('lines','ok', linesDocs.length + ' rows');
+      const linesWs = linesDocs.length
+        ? XLSX.utils.json_to_sheet(linesDocs)
+        : XLSX.utils.aoa_to_sheet([['No data']]);
+      XLSX.utils.book_append_sheet(wb, linesWs, 'SO_Lines');
+    }
+
+    // Build + download
+    showRow('build');
+    setDot('build','spin');
+    if(type === 'si')        filename = `GMPI_SI_Staging_${date}.xlsx`;
+    else if(type === 'lines') filename = `GMPI_SO_Lines_${date}.xlsx`;
+    else                       filename = `GMPI_Export_${date}.xlsx`;
+    XLSX.writeFile(wb, filename);
+    setDot('build','ok','Done');
+
+    document.getElementById('done-msg').style.display = 'block';
+
+  }catch(e){
+    const active = type==='both'?'build':type==='si'?'si':'lines';
+    setDot(active,'err');
+    document.getElementById('done-msg').style.display = 'block';
+    document.getElementById('done-msg').style.color   = '#fbbf24';
+    document.getElementById('done-msg').textContent   = '⚠ Error: '+e.message;
+  }
+
+  lockButtons(false);
+}
+
+// ── Logout ───────────────────────────────────────────────────────
+function doLogout(){
+  document.getElementById('pin-inp').value = '';
+  document.getElementById('pin-err').textContent = '';
+  document.getElementById('screen-export').style.display = 'none';
+  document.getElementById('screen-pin').style.display    = 'block';
+  document.getElementById('progress-card').classList.remove('show');
+  document.getElementById('done-msg').style.display = 'none';
+  document.getElementById('done-msg').style.color   = '#4ade80';
+  document.getElementById('done-msg').textContent   = '✅ Download started!';
+  ['si','lines','build'].forEach(id=>{
+    document.getElementById('pr-'+id).style.display = 'none';
+    setDot(id,'','');
+    document.getElementById('pc-'+id).textContent = '—';
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+**/*.md
+**/*.gs
+.clasp.json
+.claspignore

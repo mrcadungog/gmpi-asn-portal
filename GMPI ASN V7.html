@@ -1,0 +1,2454 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>GMPI Delivery Mgt System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --red:#C0181A;--red-dk:#8B0000;--red-lt:#FEF0F0;
+  --gold:#C9A84C;--gold-dk:#A07820;--gold-lt:#FBF5E6;
+  --bg:#F4F5F8;--surface:#FFFFFF;--surface2:#F9FAFB;
+  --border:#E4E7EE;--border-lt:#EFF1F5;
+  --tx:#111827;--tx2:#4B5563;--tx3:#9CA3AF;--tx-inv:#FFFFFF;
+  --green:#059669;--green-lt:#ECFDF5;
+  --amber:#D97706;--amber-lt:#FFFBEB;
+  --danger:#DC2626;--danger-lt:#FEF2F2;
+  --info:#0284C7;--info-lt:#E0F2FE;
+  --purple:#7C3AED;--purple-lt:#EDE9FE;
+  --r:10px;--r-sm:8px;--r-xs:6px;
+  --sh:0 4px 12px rgba(0,0,0,.08),0 2px 4px rgba(0,0,0,.04);
+  --sh-sm:0 1px 4px rgba(0,0,0,.06);
+  --t:.2s cubic-bezier(.4,0,.2,1);
+}
+html,body{height:100%;overflow-x:hidden}
+body{background:var(--bg);color:var(--tx);font-family:'Inter',sans-serif;font-size:13px;line-height:1.55}
+h1,h2,h3,h4,.jakarta{font-family:'Plus Jakarta Sans',sans-serif}
+.mono{font-family:'DM Mono','Courier New',monospace;letter-spacing:.02em}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+::-webkit-scrollbar-thumb:hover{background:var(--gold)}
+.view{display:none;min-height:100vh;flex-direction:column}
+.view.active{display:flex}
+.topbar{background:#0A0705;height:64px;display:flex;align-items:center;padding:0 20px;gap:14px;flex-shrink:0;position:sticky;top:0;z-index:100}
+.topbar::after{content:'';display:block;position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold-dk),var(--gold),var(--gold-dk),transparent)}
+.topbar-logo{height:36px;width:auto}
+.topbar-title{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:14px;color:var(--gold);text-transform:uppercase;letter-spacing:.06em;line-height:1.1}
+.topbar-sub{font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.12em;margin-top:2px}
+.topbar-spacer{flex:1}
+.topbar-badge{font-size:11px;color:rgba(255,255,255,.5);background:rgba(255,255,255,.08);padding:4px 10px;border-radius:20px}
+.content{flex:1;padding:20px 16px;max-width:900px;width:100%;margin:0 auto}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r-sm);border:none;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:var(--t);text-decoration:none;justify-content:center;white-space:nowrap}
+.btn-gold{background:var(--gold);color:#0A0705}.btn-gold:hover{background:var(--gold-dk)}
+.btn-red{background:var(--red);color:#fff}.btn-red:hover{background:var(--red-dk)}
+.btn-ghost{background:transparent;color:var(--tx2);border:1.5px solid var(--border)}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold-dk)}
+.btn-danger{background:var(--danger);color:#fff}.btn-danger:hover{background:#b91c1c}
+.btn-green{background:var(--green);color:#fff}.btn-green:hover{background:#047857}
+.btn-sm{padding:6px 13px;font-size:12px}.btn-lg{padding:12px 24px;font-size:14px}
+.btn-block{width:100%}.btn:disabled{opacity:.4;cursor:not-allowed;pointer-events:none}
+.card{background:var(--surface);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden}
+.card-hd{padding:14px 18px;border-bottom:1px solid var(--border-lt);display:flex;align-items:center;gap:10px}
+.card-hd h3{font-size:14px;font-weight:700;color:var(--tx);font-family:'Plus Jakarta Sans',sans-serif}
+.card-body{padding:18px}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:11px;font-weight:600;color:var(--tx3);margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em}
+.inp{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'Inter',sans-serif;font-size:13px;color:var(--tx);background:var(--surface);transition:var(--t)}
+.inp:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.15)}
+select.inp{cursor:pointer}
+.inp-dark{background:#141008;border-color:rgba(201,168,76,.3);color:rgba(255,255,255,.9)}
+.inp-dark:focus{border-color:var(--gold)}
+.inp-dark::placeholder{color:rgba(255,255,255,.3)}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
+.badge-pending{background:#F3F4F6;color:#6B7280}
+.badge-released{background:var(--info-lt);color:var(--info)}
+.badge-delivered{background:var(--green-lt);color:var(--green)}
+.badge-returned{background:var(--danger-lt);color:var(--danger)}
+.badge-rescheduled{background:var(--amber-lt);color:var(--amber)}
+.badge-voided{background:#F3F4F6;color:#9CA3AF;text-decoration:line-through}
+.tabs{display:flex;background:var(--surface);border-bottom:2px solid var(--border-lt);flex-shrink:0}
+.tab{flex:1;padding:13px 8px;text-align:center;font-size:12px;font-weight:600;color:var(--tx3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:var(--t);font-family:'Plus Jakarta Sans',sans-serif}
+.tab.active{color:var(--gold-dk);border-color:var(--gold)}
+.tab-content{display:none;flex:1;overflow-y:auto}
+.tab-content.active{display:block}
+.sub-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+.sub-tab{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;background:var(--surface2);color:var(--tx2);border:1.5px solid var(--border);transition:var(--t);font-family:'Plus Jakarta Sans',sans-serif}
+.sub-tab.active{background:var(--gold);color:#0A0705;border-color:var(--gold)}
+.sub-panel{display:none}.sub-panel.active{display:block}
+.tbl-wrap{overflow-x:auto;border-radius:var(--r-sm);border:1px solid var(--border-lt)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:var(--surface2);padding:9px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border-lt);font-family:'Plus Jakarta Sans',sans-serif}
+td{padding:9px 12px;border-bottom:1px solid var(--border-lt);color:var(--tx);vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface2)}
+.upload-zone{border:2px dashed var(--border);border-radius:var(--r);padding:24px 20px;text-align:center;cursor:pointer;transition:var(--t);background:var(--surface2)}
+.upload-zone:hover{border-color:var(--gold);background:var(--gold-lt)}
+.upload-zone.done{border-color:var(--green);background:var(--green-lt)}
+.upload-zone input{display:none}
+.upload-icon{font-size:26px;margin-bottom:6px}
+.upload-zone p{font-size:12px;color:var(--tx3);margin-top:4px}
+.upload-zone strong{font-size:13px;color:var(--tx);font-weight:600}
+.asn-card{background:var(--surface);border-radius:var(--r);box-shadow:var(--sh-sm);margin-bottom:10px;overflow:hidden;border:1px solid var(--border-lt)}
+.asn-card-hd{padding:13px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
+.asn-card-hd:hover{background:var(--surface2)}
+.asn-card-body{display:none;padding:16px;border-top:1px solid var(--border-lt)}
+.asn-card.open .asn-card-body{display:block}
+.asn-card.incomplete{border:2px solid var(--danger);box-shadow:0 0 0 3px rgba(220,38,38,.1)}
+.asn-card.incomplete .asn-card-hd{background:var(--danger-lt)}
+.chevron{margin-left:auto;color:var(--tx3);transition:var(--t);font-size:12px}
+.asn-card.open .chevron{transform:rotate(180deg)}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.stat{background:var(--surface);border-radius:var(--r-sm);padding:12px 16px;flex:1;min-width:80px;border:1px solid var(--border-lt);box-shadow:var(--sh-sm)}
+.stat-val{font-size:22px;font-weight:700;color:var(--tx);font-family:'Plus Jakarta Sans',sans-serif}
+.stat-lbl{font-size:10px;color:var(--tx3);margin-top:2px;text-transform:uppercase;letter-spacing:.05em}
+.progress-bar{background:var(--border);border-radius:4px;height:5px;overflow:hidden}
+.progress-fill{height:100%;background:var(--green);border-radius:4px;transition:width .5s ease}
+.stop-card{background:var(--surface);border-radius:var(--r);box-shadow:var(--sh-sm);margin-bottom:10px;border:1px solid var(--border-lt);overflow:hidden}
+.stop-card-hd{padding:13px 16px;display:flex;align-items:center;gap:12px;cursor:pointer}
+.stop-card-hd:hover{background:var(--surface2)}
+.stop-num{background:#0A0705;color:var(--gold);width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:800;flex-shrink:0}
+.stop-num.done{background:var(--green);color:#fff}
+.si-list{padding:0 16px 12px}
+.si-row{display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border-radius:var(--r-xs);border:1px solid var(--border-lt);cursor:pointer;transition:var(--t);background:var(--surface2)}
+.si-row:hover{border-color:var(--gold);background:var(--gold-lt)}
+.si-row.tagged{opacity:.7;cursor:default}
+.si-row.tagged:hover{border-color:var(--border-lt);background:var(--surface2)}
+.tracker-card{background:var(--surface);border-radius:var(--r);margin-bottom:14px;overflow:hidden;box-shadow:var(--sh-sm);border:1px solid var(--border-lt)}
+.tracker-hd{padding:13px 16px;background:var(--surface2);border-bottom:1px solid var(--border-lt);display:flex;align-items:center;justify-content:space-between}
+.tracker-stops{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;padding:14px}
+.tracker-stop{padding:10px 12px;border-radius:var(--r-xs);border:1px solid var(--border-lt);font-size:12px}
+#v-landing{background:var(--bg)}
+.landing-hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center}
+.landing-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:clamp(22px,5vw,30px);font-weight:800;line-height:1.2;margin-bottom:6px;color:var(--tx)}
+.landing-sub{font-size:12px;color:var(--tx3);margin-bottom:36px;text-transform:uppercase;letter-spacing:.1em}
+.role-cards{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;width:100%;max-width:680px}
+.role-card{flex:1;min-width:140px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:22px 16px;text-align:center;cursor:pointer;transition:var(--t);box-shadow:var(--sh-sm)}
+.role-card:hover{border-color:var(--gold);box-shadow:0 4px 16px rgba(201,168,76,.2);transform:translateY(-2px)}
+.role-card-icon{font-size:28px;margin-bottom:10px}
+.role-card-name{font-size:14px;font-weight:700;margin-bottom:4px;color:var(--tx);font-family:'Plus Jakarta Sans',sans-serif}
+.role-card-desc{font-size:11px;color:var(--tx3)}
+.login-view-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:20px;background:#0A0705;background-image:radial-gradient(ellipse at 50% 0%,rgba(201,168,76,.12) 0%,transparent 60%)}
+.login-box{background:rgba(255,255,255,.04);backdrop-filter:blur(20px);border:1px solid rgba(201,168,76,.2);border-radius:16px;padding:32px;width:100%;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.login-box h2{font-family:'Plus Jakarta Sans',sans-serif;color:var(--gold);font-weight:800;font-size:18px;margin-top:12px}
+.login-box p{color:rgba(255,255,255,.45);font-size:13px;margin-top:4px}
+.login-back{background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;margin-top:16px;display:flex;align-items:center;gap:6px}
+.login-back:hover{color:var(--gold)}
+.select-box{background:var(--surface);border-radius:var(--r);box-shadow:var(--sh);padding:24px;width:100%;max-width:440px}
+.divider{height:1px;background:var(--border-lt);margin:14px 0}
+.section-sep{border:none;border-top:2px dashed var(--border);margin:20px 0}
+.text-muted{color:var(--tx3);font-size:12px}
+.label-tag{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em}
+.info-row{display:flex;gap:6px;font-size:12px;margin-bottom:7px;flex-wrap:wrap}
+.info-row .lbl{color:var(--tx3);min-width:130px;flex-shrink:0}
+.info-row .val{font-weight:500;color:var(--tx)}
+.section-title{font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;font-family:'Plus Jakarta Sans',sans-serif}
+.chip{display:inline-block;background:var(--surface2);color:var(--tx2);padding:2px 8px;border-radius:4px;font-size:11px;font-family:'Inter',monospace;border:1px solid var(--border-lt)}
+.warn-box{background:var(--amber-lt);border:1px solid #FCD34D;border-radius:var(--r-sm);padding:11px 14px;font-size:12px;color:#92400E;margin-bottom:14px}
+.ok-box{background:var(--green-lt);border:1px solid #6EE7B7;border-radius:var(--r-sm);padding:11px 14px;font-size:12px;color:#065F46;margin-bottom:14px}
+.info-box{background:var(--info-lt);border:1px solid #BAE6FD;border-radius:var(--r-sm);padding:11px 14px;font-size:12px;color:#075985;margin-bottom:14px}
+.back-btn{background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:13px;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:6px}
+.back-btn:hover{color:var(--gold)}
+.back-btn-light{background:none;border:none;color:var(--tx2);cursor:pointer;font-size:13px;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:6px}
+.back-btn-light:hover{color:var(--gold-dk)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.si-staging-bar{background:var(--surface);border:1px solid var(--border-lt);border-radius:var(--r-sm);padding:12px 16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:14px;box-shadow:var(--sh-sm)}
+.photo-preview{width:100%;height:180px;object-fit:cover;border-radius:var(--r-sm);display:none;margin-top:10px}
+.photo-preview.show{display:block}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:#111827;color:#fff;padding:11px 18px;border-radius:var(--r-sm);font-size:13px;box-shadow:0 4px 20px rgba(0,0,0,.3);z-index:9999;transition:.28s ease;opacity:0;max-width:320px;text-align:center;border-left:4px solid var(--gold)}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+#toast.ok{border-color:var(--green)}#toast.err{border-color:var(--danger)}#toast.warn{border-color:var(--amber)}
+#spinner{position:fixed;inset:0;background:rgba(244,245,248,.8);display:none;align-items:center;justify-content:center;z-index:9998;flex-direction:column;gap:14px}
+#spinner.show{display:flex}
+.spin{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#spinner p{color:var(--tx2);font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600}
+#modal-overlay{position:fixed;inset:0;background:rgba(17,24,39,.6);z-index:9000;display:none;align-items:center;justify-content:center;padding:20px}
+#modal-overlay.show{display:flex}
+.modal{background:var(--surface);border-radius:var(--r);padding:26px;width:100%;max-width:480px;box-shadow:0 16px 48px rgba(0,0,0,.18);max-height:90vh;overflow-y:auto}
+.modal h3{font-family:'Plus Jakarta Sans',sans-serif;font-size:17px;font-weight:800;color:var(--tx);margin-bottom:8px}
+.modal-body-text{font-size:13px;color:var(--tx2);margin-bottom:14px;white-space:pre-line;line-height:1.6}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+/* V7 role-based */
+.admin-only{display:none!important}
+body.admin-mode .admin-only{display:block!important}
+body.admin-mode .admin-only.sub-tab{display:inline-flex!important}
+body.sales-mode .dispatch-only{display:none!important}
+.hdr-user{display:flex;flex-direction:column;cursor:pointer}
+.hdr-uname{font-size:13px;font-weight:600;color:rgba(255,255,255,.85)}
+.hdr-urole{font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.1em;margin-top:1px}
+@media(max-width:540px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}.role-cards{flex-direction:column}}
+</style>
+</head>
+<body>
+
+<!-- LANDING -->
+<section class="view active" id="v-landing">
+  <div style="background:#0A0705;padding:0 20px;display:flex;align-items:center;height:64px;position:relative">
+    <div style="position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#A07820,#C9A84C,#A07820,transparent)"></div>
+    <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:14px;color:#C9A84C;text-transform:uppercase;letter-spacing:.06em">GMPI Delivery Mgt System</div>
+  </div>
+  <div class="landing-hero">
+    <div class="landing-title">Grand Majesty<br>Pharmaceutical Inc.</div>
+    <div class="landing-sub">Advance Shipping Notice Portal</div>
+    <div class="role-cards">
+      <div class="role-card" onclick="goDispatch()"><div class="role-card-icon">📋</div><div class="role-card-name">Dispatch</div><div class="role-card-desc">Create &amp; manage ASNs</div></div>
+      <div class="role-card" onclick="goPersonnel()"><div class="role-card-icon">🚚</div><div class="role-card-name">Delivery</div><div class="role-card-desc">Tag deliveries on the road</div></div>
+      <div class="role-card" onclick="goCustomer()"><div class="role-card-icon">📦</div><div class="role-card-name">Customer</div><div class="role-card-desc">Track my incoming orders</div></div>
+      <div class="role-card" onclick="goSales()"><div class="role-card-icon">📊</div><div class="role-card-name">Sales</div><div class="role-card-desc">View delivery status</div></div>
+    </div>
+    <p class="text-muted" style="margin-top:28px">GMPI © 2026 · Delivery Mgt System v7.0 <span id="v7-build" style="font-size:10px;opacity:.4;font-family:monospace">build v52</span></p>
+  </div>
+</section>
+
+<!-- DISPATCH LOGIN -->
+<section class="view" id="v-dispatch-login">
+  <div class="login-view-wrap">
+    <div class="login-box">
+      <div style="text-align:center;margin-bottom:24px">
+        <div style="font-size:44px">📋</div>
+        <h2>Dispatch Login</h2><p>Enter your employee code and password</p>
+      </div>
+      <div class="form-group"><label>Employee Code</label>
+        <input type="text" id="disp-code-inp" class="inp inp-dark" placeholder="e.g. DISP-001" style="text-transform:uppercase" onkeydown="if(event.key==='Enter')document.getElementById('disp-pw-inp').focus()">
+      </div>
+      <div class="form-group"><label>Password</label>
+        <input type="password" id="disp-pw-inp" class="inp inp-dark" placeholder="Password" onkeydown="if(event.key==='Enter')doDispatchLogin()">
+      </div>
+      <div id="disp-login-err" style="font-size:12px;color:#fbbf24;margin-bottom:10px;min-height:18px;text-align:center"></div>
+      <button class="btn btn-gold btn-block btn-lg" onclick="doDispatchLogin()">Enter →</button>
+      <div style="text-align:center;margin-top:16px">
+        <button class="login-back" onclick="show('v-landing')">← Back</button>
+      </div>
+      <div style="text-align:center;margin-top:10px">
+        <button style="background:none;border:none;color:rgba(255,255,255,.2);font-size:11px;cursor:pointer;font-family:'Inter',sans-serif" onclick="goEmergency()">Emergency access →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EMERGENCY LOGIN -->
+<section class="view" id="v-emergency-login">
+  <div class="login-view-wrap">
+    <div class="login-box">
+      <div style="text-align:center;margin-bottom:24px">
+        <div style="font-size:44px">🚨</div>
+        <h2>Emergency Access</h2><p>Enter the shared emergency PIN</p>
+      </div>
+      <div class="form-group">
+        <input type="password" id="emergency-pin-inp" class="inp inp-dark" placeholder="Emergency PIN" style="text-align:center;font-size:20px;letter-spacing:8px" onkeydown="if(event.key==='Enter')doEmergencyLogin()">
+      </div>
+      <div id="emg-login-err" style="font-size:12px;color:#fbbf24;margin-bottom:10px;min-height:18px;text-align:center"></div>
+      <button class="btn btn-gold btn-block btn-lg" onclick="doEmergencyLogin()">Emergency Login →</button>
+      <div style="text-align:center;margin-top:14px">
+        <button class="login-back" onclick="show('v-dispatch-login')">← Back</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CHANGE PASSWORD -->
+<section class="view" id="v-change-password">
+  <div class="login-view-wrap">
+    <div class="login-box">
+      <div style="text-align:center;margin-bottom:24px">
+        <div style="font-size:44px">🔒</div>
+        <h2 id="cpw-heading">Set New Password</h2>
+        <p id="cpw-note">You must set a new password before continuing.</p>
+      </div>
+      <div class="form-group"><label>New Password (min 6 chars)</label>
+        <input type="password" id="cpw-new" class="inp inp-dark" placeholder="New password">
+      </div>
+      <div class="form-group"><label>Confirm Password</label>
+        <input type="password" id="cpw-confirm" class="inp inp-dark" placeholder="Confirm password" onkeydown="if(event.key==='Enter')doSaveNewPassword()">
+      </div>
+      <div id="cpw-err" style="font-size:12px;color:#fbbf24;margin-bottom:10px;min-height:18px;text-align:center"></div>
+      <button class="btn btn-gold btn-block btn-lg" onclick="doSaveNewPassword()">Save Password →</button>
+      <div style="text-align:center;margin-top:14px">
+        <button id="cpw-back-btn" class="login-back" onclick="cancelChangePassword()">← Cancel</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DISPATCH MAIN -->
+<section class="view" id="v-dispatch">
+  <div class="topbar">
+    <div class="hdr-user" onclick="logout()">
+      <div class="topbar-title">GMPI Delivery Mgt System</div>
+      <div class="topbar-sub">Dispatch</div>
+    </div>
+    <div class="topbar-spacer"></div>
+    <div class="hdr-user" style="align-items:flex-end;margin-right:12px">
+      <div id="hdr-uname" class="hdr-uname"></div>
+      <div id="hdr-urole" class="hdr-urole"></div>
+    </div>
+    <button class="btn btn-ghost btn-sm" style="color:rgba(255,255,255,.6);border-color:rgba(255,255,255,.15)" onclick="logout()">Sign Out</button>
+  </div>
+  <div class="tabs">
+    <div class="tab active dispatch-only" id="tab-upload" onclick="switchTab('upload')">📤 Upload</div>
+    <div class="tab" id="tab-manage" onclick="switchTab('manage')">📋 ASNs</div>
+    <div class="tab" id="tab-tracker" onclick="switchTab('tracker')">🗺 Tracker</div>
+    <div class="tab" id="tab-reports" onclick="switchTab('reports')">📊 Reports</div>
+    <div class="tab dispatch-only" id="tab-settings" onclick="switchTab('settings')">⚙ Settings</div>
+  </div>
+
+  <!-- UPLOAD TAB -->
+  <div class="tab-content active dispatch-only" id="tc-upload">
+    <div class="content">
+      <div style="margin-bottom:6px;display:flex;align-items:center;gap:10px">
+        <h3 class="jakarta" style="font-size:15px;font-weight:700">📊 SI Invoice Staging</h3><span class="chip">Standing Upload</span>
+      </div>
+      <p class="text-muted" style="margin-bottom:12px">Upload the full SI invoice report. Data persists and deduplicates automatically.</p>
+      <div class="si-staging-bar" id="si-stats-bar">
+        <div style="font-size:13px;color:var(--tx2)">📦 Unique SIs: <strong id="si-stat-unique" style="color:var(--gold-dk)">—</strong></div>
+        <div style="font-size:13px;color:var(--tx2)">📋 Total rows: <strong id="si-stat-total" style="color:var(--gold-dk)">—</strong></div>
+        <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="loadSIStats()">↻</button>
+      </div>
+      <div class="upload-zone" id="zone-si" onclick="document.getElementById('file-si').click()" style="margin-bottom:10px">
+        <input type="file" id="file-si" accept=".xlsx,.xls,.csv" onchange="onSIFileSelected(this)">
+        <div class="upload-icon">📊</div>
+        <strong id="si-file-label">Choose SI Invoice Report…</strong>
+        <p>Summary of Invoices per Item (Excel)</p>
+      </div>
+      <div id="si-upload-progress" style="display:none;font-size:12px;color:var(--tx2);margin-bottom:8px;text-align:center"></div>
+      <button class="btn btn-green btn-sm" id="btn-upload-si" disabled onclick="doUploadSI()" style="margin-bottom:6px">Upload to Staging →</button>
+      <div id="si-upload-result" style="margin-top:10px"></div>
+      <hr class="section-sep">
+      <div style="margin-bottom:6px;display:flex;align-items:center;gap:10px">
+        <h3 class="jakarta" style="font-size:15px;font-weight:700">📋 Manifest Upload</h3>
+      </div>
+      <p class="text-muted" style="margin-bottom:12px">Upload the delivery manifest to generate ASNs.</p>
+      <div id="si-ready-badge" style="display:none;margin-bottom:12px"></div>
+      <div class="upload-zone" id="zone-manifest" onclick="document.getElementById('file-manifest').click()" style="margin-bottom:10px">
+        <input type="file" id="file-manifest" accept=".xlsx,.xls,.csv" onchange="onManifestUpload(this)">
+        <div class="upload-icon">📄</div>
+        <strong id="manifest-label">Choose Delivery Manifest…</strong>
+        <p>Delivery Planning Manifest (Excel)</p>
+      </div>
+      <div class="form-group" id="sheet-selector-wrap" style="display:none">
+        <label>Select Route Sheet</label>
+        <select id="sheet-selector" class="inp" onchange="checkParseReady()"><option value="">— Choose route sheet —</option></select>
+      </div>
+      <button class="btn btn-red" id="btn-parse" disabled onclick="doParseAndMerge()">Parse &amp; Generate ASNs →</button>
+      <div id="parse-summary" style="display:none;margin-top:18px"></div>
+    </div>
+  </div>
+
+  <!-- MANAGE TAB -->
+  <div class="tab-content" id="tc-manage">
+    <div class="content">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <h2 class="jakarta" style="font-size:17px;font-weight:800">All ASNs</h2>
+        <button class="btn btn-ghost btn-sm" onclick="loadASNList()">↻ Refresh</button>
+      </div>
+      <div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap">
+        <select class="inp" id="filter-status" style="max-width:170px;font-size:12px" onchange="renderASNTable()">
+          <option value="">All Statuses</option>
+          <option>Pending</option><option>Released</option><option>Delivered</option>
+          <option>Returned</option><option>Rescheduled</option><option>Voided</option>
+        </select>
+        <input class="inp" id="filter-search" placeholder="Search customer…" style="max-width:210px;font-size:12px" oninput="renderASNTable()">
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>ASN ID</th><th>Customer</th><th>Route</th><th>Released</th><th>Exp. Delivery</th><th>Personnel</th><th>Status</th><th></th></tr></thead>
+          <tbody id="asn-table-body"><tr><td colspan="8" style="text-align:center;color:var(--tx3);padding:28px">Click Refresh to load.</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRACKER TAB -->
+  <div class="tab-content" id="tc-tracker">
+    <div class="content">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <h2 class="jakarta" style="font-size:17px;font-weight:800">Live Run Tracker</h2>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="text-muted" id="tracker-asof"></span>
+          <button class="btn btn-ghost btn-sm" onclick="loadTracker()">↻ Refresh</button>
+        </div>
+      </div>
+      <p class="text-muted" style="margin-bottom:18px">Auto-refreshes every 60 seconds.</p>
+      <div id="tracker-body"><p class="text-muted" style="text-align:center;padding:40px">Loading…</p></div>
+    </div>
+  </div>
+
+  <!-- REPORTS TAB -->
+  <div class="tab-content" id="tc-reports">
+    <div class="content">
+      <h2 class="jakarta" style="font-size:17px;font-weight:800;margin-bottom:4px">Run Report</h2>
+      <p class="text-muted" style="margin-bottom:16px">Select a control number to generate the full delivery run report.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:20px">
+        <div class="form-group" style="margin:0;flex:1;min-width:200px">
+          <label>Control Number / Route</label>
+          <select id="rpt-control-sel" class="inp"><option value="">— Select a run —</option></select>
+        </div>
+        <div class="form-group" style="margin:0">
+          <label>Released Date</label><input type="date" id="rpt-date-inp" class="inp">
+        </div>
+        <button class="btn btn-red" onclick="loadRunReport()">Generate Report</button>
+        <button class="btn btn-ghost btn-sm" onclick="loadReportControls()">↻ Refresh Runs</button>
+      </div>
+      <div id="rpt-body">
+        <div style="text-align:center;padding:60px 20px;color:var(--tx3)">
+          <div style="font-size:44px;margin-bottom:12px">📊</div>
+          <p class="jakarta" style="font-size:15px;font-weight:700;color:var(--tx);margin-bottom:6px">Select a run above</p>
+          <p class="text-muted">Choose a control number and date to generate the report.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS TAB -->
+  <div class="tab-content dispatch-only" id="tc-settings">
+    <div class="content">
+      <h2 class="jakarta" style="font-size:17px;font-weight:800;margin-bottom:14px">Settings</h2>
+      <div class="sub-tabs" id="settings-sub-tabs">
+        <div class="sub-tab active" onclick="switchSubTab('personnel',this)">👷 Personnel</div>
+        <div class="sub-tab" onclick="switchSubTab('leadtime',this)">🗓 Lead Times</div>
+        <div class="sub-tab" onclick="switchSubTab('mypassword',this)">🔒 My Password</div>
+        <div class="sub-tab" onclick="switchSubTab('salespin',this)">🔑 Sales PIN</div>
+        <div class="sub-tab admin-only" onclick="switchSubTab('emergencypin',this)">🚨 Emergency PIN</div>
+        <div class="sub-tab admin-only" onclick="switchSubTab('users',this)">👥 Users</div>
+        <div class="sub-tab" onclick="switchSubTab('dupes',this)">🧹 Duplicates</div>
+      </div>
+
+      <!-- Personnel -->
+      <div class="sub-panel active" id="sp-personnel">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <h3 class="jakarta" style="font-size:14px;font-weight:700">Delivery Personnel</h3>
+          <button class="btn btn-gold btn-sm" onclick="showAddPersonnel()">+ Add</button>
+        </div>
+        <div id="personnel-add-form" style="display:none;background:var(--surface2);border-radius:var(--r-sm);padding:14px;margin-bottom:14px;border:1px solid var(--border-lt)">
+          <div class="grid-3">
+            <div class="form-group"><label>Code</label><input id="pers-code" class="inp" placeholder="DP-001" style="text-transform:uppercase"></div>
+            <div class="form-group"><label>Full Name</label><input id="pers-name" class="inp" placeholder="Juan Dela Cruz"></div>
+            <div class="form-group"><label>Contact</label><input id="pers-contact" class="inp" placeholder="09XX-XXX-XXXX"></div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-gold btn-sm" onclick="doAddPersonnel()">Save</button>
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('personnel-add-form').style.display='none'">Cancel</button>
+          </div>
+        </div>
+        <div id="personnel-list-body"><p class="text-muted" style="text-align:center;padding:20px">Loading…</p></div>
+      </div>
+
+      <!-- Lead Times -->
+      <div class="sub-panel" id="sp-leadtime">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <h3 class="jakarta" style="font-size:14px;font-weight:700">Route Lead Times</h3>
+          <button class="btn btn-gold btn-sm" onclick="showAddLeadTime()">+ Add Route</button>
+        </div>
+        <div id="lt-add-form" style="display:none;background:var(--surface2);border-radius:var(--r-sm);padding:14px;margin-bottom:14px;border:1px solid var(--border-lt)">
+          <div class="grid-2">
+            <div class="form-group"><label>Route Name</label><input id="lt-route" class="inp" placeholder="e.g. BOHOL2"></div>
+            <div class="form-group"><label>Cluster</label><input id="lt-cluster" class="inp" placeholder="e.g. BOHOL"></div>
+            <div class="form-group"><label>Dispatch to Delivery (days)</label><input id="lt-dsla" class="inp" type="number" min="0" placeholder="4"></div>
+            <div class="form-group"><label>Order to Delivery (days)</label><input id="lt-osla" class="inp" type="number" min="0" placeholder="6"></div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-gold btn-sm" onclick="doSaveLeadTime()">Save</button>
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('lt-add-form').style.display='none'">Cancel</button>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Route</th><th>Cluster</th><th>Dispatch SLA</th><th>Order SLA</th><th></th></tr></thead>
+            <tbody id="lt-table-body"><tr><td colspan="5" style="text-align:center;color:var(--tx3);padding:24px">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- My Password -->
+      <div class="sub-panel" id="sp-mypassword">
+        <div class="card" style="max-width:440px">
+          <div class="card-hd"><h3>🔒 Change My Password</h3></div>
+          <div class="card-body">
+            <div class="form-group"><label>Current Password</label><input type="password" id="mypw-cur" class="inp" placeholder="Current password"></div>
+            <div class="form-group"><label>New Password (min 6 chars)</label><input type="password" id="mypw-new" class="inp" placeholder="New password"></div>
+            <div class="form-group"><label>Confirm New Password</label><input type="password" id="mypw-confirm" class="inp" placeholder="Confirm new password"></div>
+            <button class="btn btn-gold btn-sm" onclick="doChangeMyPassword()">Update Password</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sales PIN -->
+      <div class="sub-panel" id="sp-salespin">
+        <div class="card" style="max-width:440px">
+          <div class="card-hd"><h3>🔑 Sales PIN</h3></div>
+          <div class="card-body">
+            <p class="text-muted" style="margin-bottom:14px">Shared PIN used by the Sales team to access the Sales portal. Leave <strong>Current PIN</strong> blank if setting for the first time.</p>
+            <div class="form-group"><label>Current Sales PIN <span style="color:rgba(255,255,255,.4);font-weight:400">(leave blank if none set yet)</span></label><input type="password" id="sp-cur" class="inp" placeholder="Current PIN (skip if first time)"></div>
+            <div class="form-group"><label>New Sales PIN (min 6 chars)</label><input type="password" id="sp-new" class="inp" placeholder="New PIN"></div>
+            <button class="btn btn-gold btn-sm" onclick="doChangeSalesPin()">Update Sales PIN</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Emergency PIN (admin only) -->
+      <div class="sub-panel" id="sp-emergencypin">
+        <div class="card" style="max-width:440px">
+          <div class="card-hd"><h3>🚨 Emergency PIN</h3></div>
+          <div class="card-body">
+            <p class="text-muted" style="margin-bottom:14px">Fallback PIN for emergency dispatch access when individual logins are unavailable.</p>
+            <div class="form-group"><label>Current Emergency PIN</label><input type="password" id="ep-cur" class="inp" placeholder="Current PIN"></div>
+            <div class="form-group"><label>New Emergency PIN (min 6 chars)</label><input type="password" id="ep-new" class="inp" placeholder="New PIN"></div>
+            <button class="btn btn-gold btn-sm" onclick="doChangeEmergencyPin()">Update Emergency PIN</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Users (admin only) -->
+      <div class="sub-panel" id="sp-users">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <h3 class="jakarta" style="font-size:14px;font-weight:700">Dispatcher Accounts</h3>
+          <button class="btn btn-gold btn-sm" onclick="document.getElementById('user-add-form').style.display='block'">+ Add Dispatcher</button>
+        </div>
+        <div id="user-add-form" style="display:none;background:var(--surface2);border-radius:var(--r-sm);padding:14px;margin-bottom:14px;border:1px solid var(--border-lt)">
+          <div class="grid-3">
+            <div class="form-group"><label>Employee Code</label><input id="usr-code" class="inp" placeholder="DISP-001" style="text-transform:uppercase"></div>
+            <div class="form-group"><label>Full Name</label><input id="usr-name" class="inp" placeholder="Juan Dela Cruz"></div>
+            <div class="form-group"><label>Role</label>
+              <select id="usr-role" class="inp">
+                <option value="dispatch">Dispatcher</option>
+                <option value="superadmin">Super Admin</option>
+              </select>
+            </div>
+          </div>
+          <p class="text-muted" style="margin-bottom:10px;font-size:11px">Default password: <strong>GMPI@2026</strong> (user must change on first login)</p>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-gold btn-sm" onclick="doAddDispatcher()">Save</button>
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('user-add-form').style.display='none'">Cancel</button>
+          </div>
+        </div>
+        <div id="users-list-body"><p class="text-muted" style="text-align:center;padding:20px">Loading…</p></div>
+      </div>
+
+      <!-- Duplicates -->
+      <div class="sub-panel" id="sp-dupes">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <h3 class="jakarta" style="font-size:14px;font-weight:700">Duplicate ASN Manager</h3>
+          <button class="btn btn-ghost btn-sm" onclick="loadDuplicates()">↻ Scan</button>
+        </div>
+        <p class="text-muted" style="margin-bottom:14px">Detects ASNs with same customer, control number, and release date.</p>
+        <div id="dupes-body"><p class="text-muted" style="text-align:center;padding:40px">Click Scan to detect duplicates.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DISPATCH REVIEW -->
+<section class="view" id="v-dispatch-review">
+  <div class="topbar">
+    <button class="back-btn" onclick="show('v-dispatch');switchTab('upload')">← Back</button>
+    <div class="topbar-spacer"></div>
+    <button class="btn btn-gold btn-sm" id="btn-publish" onclick="showPublishConfirm()">Publish All ASNs</button>
+  </div>
+  <div style="background:var(--surface);border-bottom:1px solid var(--border-lt);padding:12px 16px">
+    <div style="max-width:900px;margin:0 auto">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+        <span class="chip" id="rev-route"></span><span class="chip" id="rev-ctrlno"></span><span class="chip" id="rev-date"></span>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="stat-val" id="rv-cust">0</div><div class="stat-lbl">Customers</div></div>
+        <div class="stat"><div class="stat-val" id="rv-si">0</div><div class="stat-lbl">Invoices</div></div>
+        <div class="stat"><div class="stat-val" id="rv-items">0</div><div class="stat-lbl">Line Items</div></div>
+        <div class="stat"><div class="stat-val" id="rv-unmatched" style="color:var(--amber)">0</div><div class="stat-lbl">Unmatched</div></div>
+      </div>
+    </div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:16px">
+    <div style="max-width:900px;margin:0 auto">
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-hd"><h3>⚡ Bulk Assignment</h3><span class="text-muted" style="margin-left:auto;font-size:11px">Applies to all ASNs</span></div>
+        <div class="card-body">
+          <div class="grid-4">
+            <div class="form-group" style="margin:0"><label>Released Date</label><input type="date" id="bulk-released" class="inp" onchange="applyBulkETA()"></div>
+            <div class="form-group" style="margin:0"><label>Truck Plate</label><input id="bulk-truck" class="inp" placeholder="CEQ 123" style="text-transform:uppercase"></div>
+            <div class="form-group" style="margin:0"><label>Delivery Personnel</label><select id="bulk-personnel" class="inp"><option value="">— Select —</option></select></div>
+            <div class="form-group" style="margin:0"><label>Expected Delivery</label><input type="date" id="bulk-eta" class="inp"></div>
+          </div>
+          <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="applyBulk()">Apply to All →</button>
+        </div>
+      </div>
+      <div id="asn-review-cards"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ASN DETAIL -->
+<section class="view" id="v-asn-detail">
+  <div class="topbar">
+    <button class="back-btn" onclick="show('v-dispatch');switchTab('manage')">← ASN List</button>
+    <div class="topbar-spacer"></div>
+    <span class="topbar-badge mono" id="detail-asn-id"></span>
+  </div>
+  <div class="content" style="padding-top:20px"><div id="asn-detail-body"></div></div>
+</section>
+
+<!-- PERSONNEL LOGIN -->
+<section class="view" id="v-personnel-login">
+  <div class="login-view-wrap">
+    <div class="login-box">
+      <div style="text-align:center;margin-bottom:24px">
+        <div style="font-size:44px">🚚</div>
+        <h2>Delivery Personnel</h2><p>Enter your code and password</p>
+      </div>
+      <div class="form-group"><label>Personnel Code</label>
+        <input type="text" id="personnel-code-inp" class="inp inp-dark" placeholder="e.g. DP-001" style="text-align:center;font-size:16px;text-transform:uppercase" onkeydown="if(event.key==='Enter')document.getElementById('personnel-pw-inp').focus()">
+      </div>
+      <div class="form-group"><label>Password</label>
+        <input type="password" id="personnel-pw-inp" class="inp inp-dark" placeholder="Password" onkeydown="if(event.key==='Enter')doPersonnelLogin()">
+      </div>
+      <div id="pers-login-err" style="font-size:12px;color:#fbbf24;margin-bottom:10px;min-height:18px;text-align:center"></div>
+      <button class="btn btn-gold btn-block btn-lg" onclick="doPersonnelLogin()">Check In →</button>
+      <div style="text-align:center;margin-top:14px"><button class="login-back" onclick="show('v-landing')">← Back</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- PERSONNEL SELECT RUN -->
+<section class="view" id="v-personnel-select">
+  <div style="background:#0A0705;padding:0 20px;display:flex;align-items:center;height:64px;position:relative">
+    <div style="position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#A07820,#C9A84C,#A07820,transparent)"></div>
+    <button class="back-btn" onclick="show('v-personnel-login')">← Back</button>
+    <div style="margin-left:12px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:14px;color:var(--gold)">Select Run</div>
+  </div>
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--bg)">
+    <div class="select-box">
+      <div style="margin-bottom:20px;text-align:center">
+        <div style="font-size:36px;margin-bottom:10px">📋</div>
+        <h2 class="jakarta" style="font-size:18px;font-weight:800;color:var(--tx)" id="pers-select-name">Hello!</h2>
+        <p class="text-muted" style="margin-top:4px">Select the delivery run to load</p>
+      </div>
+      <div class="form-group">
+        <label>Control Number / Route</label>
+        <select id="pers-control-select" class="inp"><option value="">— Select a run —</option></select>
+      </div>
+      <button class="btn btn-gold btn-block btn-lg" onclick="loadPersonnelRunFromSelect()">Load My Run →</button>
+    </div>
+  </div>
+</section>
+
+<!-- PERSONNEL RUN -->
+<section class="view" id="v-personnel-run">
+  <div class="topbar">
+    <div onclick="logout()" style="cursor:pointer">
+      <div class="topbar-title" id="pers-name-bar">Delivery</div>
+      <div class="topbar-sub" id="pers-run-date"></div>
+    </div>
+    <div class="topbar-spacer"></div>
+    <div id="pers-progress-text" class="topbar-badge"></div>
+  </div>
+  <div class="content">
+    <div class="progress-bar" style="margin-bottom:16px"><div class="progress-fill" id="pers-progress-fill" style="width:0%"></div></div>
+    <div id="start-run-wrap" style="margin-bottom:14px;display:none">
+      <button class="btn btn-gold btn-block btn-lg" onclick="startDeliveryRun()">🚀 Start Delivery Run — Set All to Released</button>
+    </div>
+    <div id="personnel-run-body"></div>
+  </div>
+</section>
+
+<!-- PERSONNEL TAG -->
+<section class="view" id="v-personnel-tag">
+  <div class="topbar">
+    <button class="back-btn" onclick="show('v-personnel-run')">← Back to Run</button>
+    <div class="topbar-spacer"></div>
+    <span class="topbar-badge mono" id="tag-si-no"></span>
+  </div>
+  <div class="content">
+    <div class="card">
+      <div class="card-hd"><h3 id="tag-cust-name"></h3></div>
+      <div class="card-body">
+        <div class="info-row"><span class="lbl">SO No.</span><span class="val mono" id="tag-so-no"></span></div>
+        <div class="info-row"><span class="lbl">SI No.</span><span class="val mono" id="tag-si-no2"></span></div>
+        <div class="info-row"><span class="lbl">Delivery Instruction</span><span class="val" id="tag-instr"></span></div>
+        <div class="info-row"><span class="lbl">Receiving Hours</span><span class="val" id="tag-recv"></span></div>
+        <div class="info-row"><span class="lbl">Mode of Payment</span><span class="val" id="tag-mop"></span></div>
+        <div class="divider"></div>
+        <p class="section-title">Items</p>
+        <div id="tag-items-list" style="margin-bottom:14px"></div>
+        <div class="divider"></div>
+        <p class="section-title">Delivery Status</p>
+        <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" id="st-delivered" onclick="setTagStatus('Delivered')" style="flex:1">✅ Delivered</button>
+          <button class="btn btn-ghost btn-sm" id="st-returned" onclick="setTagStatus('Returned')" style="flex:1">🔴 Returned</button>
+          <button class="btn btn-ghost btn-sm" id="st-rescheduled" onclick="setTagStatus('Rescheduled')" style="flex:1">🔄 Rescheduled</button>
+        </div>
+        <div class="form-group" id="reason-group" style="display:none"><label>Reason (required)</label><input id="tag-reason" class="inp" placeholder="State reason…"></div>
+        <div class="form-group"><label>Recipient Name</label><input id="tag-recipient" class="inp" placeholder="Name of person who received"></div>
+        <div class="form-group">
+          <label>Photo Proof of Delivery</label>
+          <button class="btn btn-ghost btn-sm btn-block" onclick="document.getElementById('pod-photo').click()">📷 Take / Choose Photo</button>
+          <input type="file" id="pod-photo" accept="image/*" capture="environment" style="display:none" onchange="onPhotoSelected(this)">
+          <img id="pod-preview" class="photo-preview" alt="POD">
+          <p id="photo-status" class="text-muted" style="font-size:11px;margin-top:5px"></p>
+        </div>
+        <button class="btn btn-gold btn-block btn-lg" style="margin-top:8px" onclick="submitTag()" id="btn-submit-tag">Submit Delivery Tag</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SALES LOGIN -->
+<section class="view" id="v-sales-login">
+  <div class="login-view-wrap">
+    <div class="login-box">
+      <div style="text-align:center;margin-bottom:24px">
+        <div style="font-size:44px">📊</div>
+        <h2>Sales Portal</h2><p>Enter the shared sales PIN</p>
+      </div>
+      <div class="form-group">
+        <input type="password" id="sales-pin-inp" class="inp inp-dark" placeholder="Sales PIN" style="text-align:center;font-size:20px;letter-spacing:8px" onkeydown="if(event.key==='Enter')doSalesLogin()">
+      </div>
+      <div id="sales-login-err" style="font-size:12px;color:#fbbf24;margin-bottom:10px;min-height:18px;text-align:center"></div>
+      <button class="btn btn-gold btn-block btn-lg" onclick="doSalesLogin()">Enter →</button>
+      <div style="text-align:center;margin-top:14px"><button class="login-back" onclick="show('v-landing')">← Back</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- SALES MAIN -->
+<section class="view" id="v-sales">
+  <div class="topbar">
+    <div><div class="topbar-title">GMPI Delivery Mgt System</div><div class="topbar-sub">Sales View — Read Only</div></div>
+    <div class="topbar-spacer"></div>
+    <button class="btn btn-ghost btn-sm" style="color:rgba(255,255,255,.6);border-color:rgba(255,255,255,.15)" onclick="logout()">Sign Out</button>
+  </div>
+  <div class="tabs">
+    <div class="tab active" id="stab-deliveries" onclick="switchSalesTab('deliveries')">📋 Deliveries</div>
+    <div class="tab" id="stab-tracker" onclick="switchSalesTab('tracker')">🗺 Live Tracker</div>
+  </div>
+  <div class="tab-content active" id="stc-deliveries">
+    <div class="content">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <h2 class="jakarta" style="font-size:17px;font-weight:800">All Deliveries</h2>
+        <button class="btn btn-ghost btn-sm" onclick="loadSalesData()">↻ Refresh</button>
+      </div>
+      <div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap">
+        <select class="inp" id="sales-filter-status" style="max-width:170px;font-size:12px" onchange="renderSalesASNTable()">
+          <option value="">All Statuses</option>
+          <option>Pending</option><option>Released</option><option>Delivered</option>
+          <option>Returned</option><option>Rescheduled</option><option>Voided</option>
+        </select>
+        <input class="inp" id="sales-filter-search" placeholder="Search customer…" style="max-width:210px;font-size:12px" oninput="renderSalesASNTable()">
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>ASN ID</th><th>Customer</th><th>Route</th><th>Released</th><th>Exp. Delivery</th><th>Personnel</th><th>Status</th></tr></thead>
+          <tbody id="sales-asn-body"><tr><td colspan="7" style="text-align:center;color:var(--tx3);padding:28px">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="tab-content" id="stc-tracker">
+    <div class="content">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <h2 class="jakarta" style="font-size:17px;font-weight:800">Live Run Tracker</h2>
+        <button class="btn btn-ghost btn-sm" onclick="loadSalesTracker()">↻ Refresh</button>
+      </div>
+      <div id="sales-tracker-body"><p class="text-muted" style="text-align:center;padding:40px">Loading…</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- CUSTOMER LOGIN -->
+<section class="view" id="v-customer-login">
+  <div class="login-view-wrap">
+    <div class="login-box">
+      <div style="text-align:center;margin-bottom:24px">
+        <div style="font-size:44px">📦</div>
+        <h2>Track My Orders</h2><p>Enter your GMPI customer code</p>
+      </div>
+      <div class="form-group">
+        <input type="text" id="cust-code-inp" class="inp inp-dark" placeholder="e.g. CUS000000001" style="text-align:center;font-size:15px;text-transform:uppercase" onkeydown="if(event.key==='Enter')doCustomerLogin()">
+      </div>
+      <button class="btn btn-gold btn-block btn-lg" onclick="doCustomerLogin()">View My Orders →</button>
+      <div style="text-align:center;margin-top:14px"><button class="login-back" onclick="show('v-landing')">← Back</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- CUSTOMER SELECT -->
+<section class="view" id="v-customer-select">
+  <div style="background:#0A0705;padding:0 20px;display:flex;align-items:center;height:64px;position:relative">
+    <div style="position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#A07820,#C9A84C,#A07820,transparent)"></div>
+    <button class="back-btn" onclick="show('v-customer-login')">← Back</button>
+    <div style="margin-left:12px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:14px;color:var(--gold)">Select Shipment</div>
+  </div>
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--bg)">
+    <div class="select-box">
+      <div style="margin-bottom:20px;text-align:center">
+        <div style="font-size:36px;margin-bottom:10px">📦</div>
+        <h2 class="jakarta" style="font-size:18px;font-weight:800;color:var(--tx)" id="cust-select-name">Hello!</h2>
+        <p class="text-muted" style="margin-top:4px">Select the shipment you want to view</p>
+      </div>
+      <div class="form-group">
+        <label>Control Number / Route</label>
+        <select id="cust-control-select" class="inp"><option value="">— Select a shipment —</option></select>
+      </div>
+      <button class="btn btn-gold btn-block btn-lg" onclick="loadCustomerOrdersFromSelect()">View My Orders →</button>
+    </div>
+  </div>
+</section>
+
+<!-- CUSTOMER ASNS -->
+<section class="view" id="v-customer-asns">
+  <div class="topbar">
+    <div><div class="topbar-title" id="cust-name-bar">Customer Portal</div><div class="topbar-sub mono" id="cust-code-bar"></div></div>
+    <div class="topbar-spacer"></div>
+    <button class="btn btn-gold btn-sm" onclick="exportCurrentCustomerASN()">⬇ Export</button>
+    <button class="back-btn" style="margin-left:8px" onclick="show('v-customer-select')">Change Run</button>
+  </div>
+  <div class="content">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <h2 class="jakarta" style="font-size:17px;font-weight:800">My Incoming Orders</h2>
+    </div>
+    <div id="customer-asns-body"></div>
+  </div>
+</section>
+
+<!-- OVERLAYS -->
+<div id="toast"></div>
+<div id="spinner"><div class="spin"></div><p id="spinner-msg">Please wait…</p></div>
+<div id="modal-overlay">
+  <div class="modal">
+    <h3 id="modal-title"></h3>
+    <div class="modal-body-text" id="modal-body"></div>
+    <div id="modal-extra"></div>
+    <div class="form-group" id="modal-input-group" style="display:none">
+      <label id="modal-input-label"></label>
+      <input id="modal-input" class="inp">
+    </div>
+    <div class="modal-actions" id="modal-actions"></div>
+  </div>
+</div>
+
+<script>
+window.onerror=function(msg,src,line,col,err){
+  var d=document.getElementById('v7-err-banner');
+  if(!d){d=document.createElement('div');d.id='v7-err-banner';d.style='position:fixed;top:0;left:0;right:0;padding:10px 16px;background:#DC2626;color:#fff;font-family:monospace;font-size:12px;z-index:99999;word-break:break-all';document.body&&document.body.prepend(d);}
+  d.textContent='JS Error line '+line+': '+msg;
+  return false;
+};
+var _db;
+
+const S={
+  role:null,user:null,personnelInfo:null,personnelControlPairs:[],
+  customerCode:null,changePasswordCtx:null,
+  asnList:[],leadTimes:[],personnelList:[],
+  manifestWB:null,manifestData:null,generatedASNs:[],currentRun:null
+};
+
+function _fbNow(){return new Date().toISOString();}
+function _fbId(pfx){return pfx+'-'+Date.now().toString(36).toUpperCase()+Math.random().toString(36).slice(2,5).toUpperCase();}
+async function _fbHash(s){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s+'GMPI_SALT_2026'));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function _fbBatchCommit(writes){
+  for(let i=0;i<writes.length;i+=499){
+    const b=_db.batch();writes.slice(i,i+499).forEach(w=>b.set(w.ref,w.data));await b.commit();
+  }
+}
+
+async function _fbLoginDispatch(code,pw){
+  try{
+    const doc=await _db.collection('users').doc(code).get();
+    if(!doc.exists||!doc.data().active)return{ok:false};
+    const d=doc.data();
+    if(await _fbHash(pw)!==d.passwordHash)return{ok:false};
+    return{ok:true,name:d.name,role:d.role,mustChangePassword:!!d.mustChangePassword};
+  }catch(e){return{ok:false,err:e.message};}
+}
+async function _fbLoginPersonnelWithPw(code,pw){
+  try{
+    const cStr=String(code).trim().toUpperCase();
+    const doc=await _db.collection('personnel').doc(cStr).get();
+    if(!doc.exists||!doc.data().Active)return{ok:false};
+    const d=doc.data();
+    const expected=d.passwordHash||(await _fbHash('GMPI@2026'));
+    if(await _fbHash(pw)!==expected)return{ok:false};
+    const mustChange=!d.passwordHash||!!d.mustChangePassword;
+    const cr=await _fbGetPersonnelControlNumbers(cStr);
+    return{ok:true,name:d.Name,contact:d.Contact||'',code:cStr,pairs:cr.pairs||[],mustChangePassword:mustChange};
+  }catch(e){return{ok:false,err:e.message};}
+}
+async function _fbValidateSalesPin(pin){
+  try{
+    const doc=await _db.collection('settings').doc('sales_pin').get();
+    if(!doc.exists)return{ok:false,msg:'Sales PIN not configured. Contact admin.'};
+    return{ok:await _fbHash(pin)===doc.data().value};
+  }catch(e){return{ok:false,err:e.message};}
+}
+async function _fbChangeSalesPin(cur,nw){
+  try{
+    const doc=await _db.collection('settings').doc('sales_pin').get();
+    if(doc.exists){
+      if(await _fbHash(cur)!==doc.data().value)return{ok:false,msg:'Current PIN incorrect.'};
+    }
+    if(!nw||nw.length<6)return{ok:false,msg:'New PIN must be at least 6 characters.'};
+    await _db.collection('settings').doc('sales_pin').set({value:await _fbHash(nw)});
+    return{ok:true};
+  }catch(e){return{ok:false,err:e.message};}
+}
+async function _fbSaveNewPassword(code,col,newPw){
+  try{
+    if(!newPw||newPw.length<6)return{ok:false,msg:'Password must be at least 6 characters.'};
+    await _db.collection(col).doc(code).update({passwordHash:await _fbHash(newPw),mustChangePassword:false});
+    return{ok:true};
+  }catch(e){return{ok:false,err:e.message};}
+}
+async function _fbChangeOwnPassword(code,col,curPw,newPw){
+  try{
+    const doc=await _db.collection(col).doc(code).get();
+    if(!doc.exists)return{ok:false,msg:'User not found.'};
+    const d=doc.data();
+    const stored=d.passwordHash||(await _fbHash('GMPI@2026'));
+    if(await _fbHash(curPw)!==stored)return{ok:false,msg:'Current password incorrect.'};
+    if(!newPw||newPw.length<6)return{ok:false,msg:'New password must be at least 6 characters.'};
+    await _db.collection(col).doc(code).update({passwordHash:await _fbHash(newPw),mustChangePassword:false});
+    return{ok:true};
+  }catch(e){return{ok:false,err:e.message};}
+}
+async function _fbAdminResetPassword(code){
+  try{
+    await _db.collection('users').doc(code).update({passwordHash:await _fbHash('GMPI@2026'),mustChangePassword:true});
+    return{ok:true};
+  }catch(e){return{ok:false,err:e.message};}
+}
+async function _fbGetAllUsers(){
+  try{
+    const snap=await _db.collection('users').get();
+    return{ok:true,users:snap.docs.map(d=>({code:d.id,...d.data()}))};
+  }catch(e){return{ok:false,err:e.message};}
+}
+async function _fbAddUser(code,name,role){
+  try{
+    const ex=await _db.collection('users').doc(code).get();
+    if(ex.exists)return{ok:false,msg:'Code already exists.'};
+    await _db.collection('users').doc(code).set({name,role,passwordHash:await _fbHash('GMPI@2026'),mustChangePassword:true,active:true,created_at:_fbNow(),last_login:null});
+    return{ok:true};
+  }catch(e){return{ok:false,err:e.message};}
+}
+async function _fbToggleUser(code,active){
+  try{await _db.collection('users').doc(code).update({active});return{ok:true};}
+  catch(e){return{ok:false,err:e.message};}
+}
+async function _fbEditUser(code,name,role){
+  try{
+    if(!name||!role)return{ok:false,msg:'Name and role are required.'};
+    await _db.collection('users').doc(code).update({name,role,updated_at:_fbNow()});
+    return{ok:true};
+  }catch(e){return{ok:false,err:e.message};}
+}
+
+async function _fbValidatePin(pin){
+  try{
+    const doc=await _db.collection('settings').doc('dispatch_pin').get();
+    if(!doc.exists){
+      return new Promise((res,rej)=>google.script.run.withSuccessHandler(res).withFailureHandler(rej).validatePin(pin));
+    }
+    return{ok:await _fbHash(pin)===doc.data().value};
+  }catch(e){return{ok:false,err:e.message};}
+}
+async function _fbChangePin(cur,nw){
+  try{
+    const doc=await _db.collection('settings').doc('dispatch_pin').get();
+    let curOk;
+    if(!doc.exists){
+      const r=await new Promise((res,rej)=>google.script.run.withSuccessHandler(res).withFailureHandler(rej).validatePin(cur));
+      curOk=r&&r.ok;
+    }else{curOk=await _fbHash(cur)===doc.data().value;}
+    if(!curOk)return{ok:false,msg:'Current PIN incorrect.'};
+    if(!nw||nw.length<6)return{ok:false,msg:'New PIN must be at least 6 characters.'};
+    await _db.collection('settings').doc('dispatch_pin').set({value:await _fbHash(nw)});
+    return{ok:true};
+  }catch(e){return{ok:false,err:e.message};}
+}
+
+async function _fbLoginCustomer(code){
+  try{
+    const cStr=String(code).trim().toUpperCase();
+    const snap=await _db.collection('asns').where('Cust_Code','==',cStr).get();
+    const active=snap.docs.find(d=>d.data().Status!=='Voided');
+    if(!active)return{ok:false};
+    const cr=await _fbGetCustomerControlNumbers(cStr);
+    return{ok:true,name:active.data().Cust_Name,code:cStr,pairs:cr.pairs||[]};
+  }catch(e){return{ok:false,err:e.message};}
+}
+async function _fbGetPersonnel(){
+  try{
+    const snap=await _db.collection('personnel').where('Active','==',true).get();
+    return{ok:true,personnel:snap.docs.map(d=>({code:d.id,name:d.data().Name,contact:d.data().Contact||''}))};
+  }catch(e){return{ok:false,err:e.message};}
+}
+async function _fbAddPersonnel(code,name,contact){
+  try{
+    await _db.collection('personnel').doc(code).set({Name:name,Contact:contact||'',Active:true,Created_At:_fbNow(),mustChangePassword:true,passwordHash:null});
+    return{ok:true};
+  }catch(e){return{ok:false,err:e.message};}
+}
+async function _fbRemovePersonnel(code){
+  try{await _db.collection('personnel').doc(code).update({Active:false});return{ok:true};}
+  catch(e){return{ok:false,err:e.message};}
+}
+async function _fbGetLeadTimes(){
+  try{
+    const snap=await _db.collection('lead_times').get();
+    return{ok:true,leadTimes:snap.docs.map(d=>d.data())};
+  }catch(e){return{ok:false,err:e.message};}
+}
+async function _fbSaveLeadTime(route,cluster,dSLA,oSLA){
+  try{
+    const id=route.replace(/\//g,'__');
+    const ex=await _db.collection('lead_times').doc(id).get();
+    await _db.collection('lead_times').doc(id).set({Route:route,Cluster:cluster,Dispatch_SLA:dSLA,Order_SLA:oSLA,Updated_At:_fbNow()});
+    return{ok:true,action:ex.exists?'updated':'added'};
+  }catch(e){return{ok:false,err:e.message};}
+}
+async function _fbDeleteLeadTime(route){
+  try{await _db.collection('lead_times').doc(route.replace(/\//g,'__')).delete();return{ok:true};}
+  catch(e){return{ok:false,err:e.message};}
+}
+async function _fbGetSIStagingStats(){
+  try{
+    const snap=await _db.collection('si_staging').get();
+    const siSet=new Set(snap.docs.map(d=>d.data().SI_Number));
+    return{ok:true,total:snap.size,unique:siSet.size};
+  }catch(e){return{ok:false,err:e.message};}
+}
+async function _fbUploadSIStaging(rows){
+  try{
+    const writes=rows.map(r=>({ref:_db.collection('si_staging').doc(r.SI_Number+'__'+r.Item_Code),data:r}));
+    await _fbBatchCommit(writes);return{ok:true,count:rows.length};
+  }catch(e){return{ok:false,err:e.message};}
+}
+async function _fbGetSIStagingByNumbers(siNumbers){
+  try{
+    const items=[];
+    for(let i=0;i<siNumbers.length;i+=30){
+      const chunk=siNumbers.slice(i,i+30);
+      const snap=await _db.collection('si_staging').where('SI_Number','in',chunk).get();
+      snap.docs.forEach(d=>items.push(d.data()));
+    }
+    return{ok:true,items};
+  }catch(e){return{ok:false,err:e.message};}
+}
+async function _fbDetectDuplicateASNs(controlNo,releasedDate){
+  try{
+    const snap=await _db.collection('asns').where('Control_No','==',controlNo).where('Released_Date','==',releasedDate).where('Status','!=','Voided').get();
+    return{ok:true,duplicates:snap.docs.map(d=>d.id)};
+  }catch(e){return{ok:false,err:e.message};}
+}
+async function _fbPublishBatch(batch){
+  try{
+    const writes=batch.map(asn=>({ref:_db.collection('asns').doc(asn.ASN_ID),data:{...asn}}));
+    const lineWrites=batch.flatMap(asn=>asn.lines.map(l=>({ref:_db.collection('asn_lines').doc(asn.ASN_ID+'__'+l.siNumber+'__'+l.itemCode),data:{...l,ASN_ID:asn.ASN_ID}})));
+    await _fbBatchCommit(writes);await _fbBatchCommit(lineWrites);
+    return{ok:true};
+  }catch(e){return{ok:false,err:e.message};}
+}
+async function _fbGetASNList(){
+  try{
+    const snap=await _db.collection('asns').orderBy('Created_At','desc').limit(200).get();
+    return{ok:true,list:snap.docs.map(d=>({id:d.id,...d.data()}))};
+  }catch(e){return{ok:false,err:e.message};}
+}
+async function _fbGetASNDetail(id){
+  try{
+    const [asnDoc,linesSnap,tagsSnap]=await Promise.all([
+      _db.collection('asns').doc(id).get(),
+      _db.collection('asn_lines').where('ASN_ID','==',id).get(),
+      _db.collection('delivery_tags').where('ASN_ID','==',id).get()
+    ]);
+    if(!asnDoc.exists)return{ok:false};
+    return{ok:true,asn:asnDoc.data(),lines:linesSnap.docs.map(d=>d.data()),tags:tagsSnap.docs.map(d=>d.data()),photos:[]};
+  }catch(e){return{ok:false,err:e.message};}
+}
+async function _fbSetStatus(id,status){
+  try{await _db.collection('asns').doc(id).update({Status:status,Updated_At:_fbNow()});return{ok:true};}
+  catch(e){return{ok:false,err:e.message};}
+}
+async function _fbVoidASN(id,reason){
+  try{await _db.collection('asns').doc(id).update({Status:'Voided',Void_Reason:reason,Voided_At:_fbNow()});return{ok:true};}
+  catch(e){return{ok:false,err:e.message};}
+}
+async function _fbGetDuplicateASNs(){
+  try{
+    const snap=await _db.collection('asns').where('Status','!=','Voided').get();
+    const groups={};
+    snap.docs.forEach(d=>{const a=d.data();const k=`${a.Cust_Code}|${a.Control_No}|${a.Released_Date}`;if(!groups[k])groups[k]=[];groups[k].push({id:d.id,...a});});
+    return{ok:true,groups:Object.entries(groups).filter(([,v])=>v.length>1).map(([k,v])=>({key:k,asns:v}))};
+  }catch(e){return{ok:false,err:e.message};}
+}
+async function _fbBulkVoidASNs(ids,reason){
+  try{
+    const b=_db.batch();
+    ids.forEach(id=>b.update(_db.collection('asns').doc(id),{Status:'Voided',Void_Reason:reason,Voided_At:_fbNow()}));
+    await b.commit();return{ok:true};
+  }catch(e){return{ok:false,err:e.message};}
+}
+async function _fbAssignPersonnelToASN(asnId,personnelCode,releasedDate){
+  try{
+    const snap=await _db.collection('personnel').doc(personnelCode).get();
+    if(!snap.exists)return{ok:false,msg:'Personnel not found.'};
+    const p=snap.data();
+    const asnSnap=await _db.collection('asns').doc(asnId).get();
+    const asnRoute=asnSnap.exists?_s(asnSnap.data().Route).trim().toUpperCase():'';
+    const lt=S.leadTimes.find(r=>_s(r.Route).trim().toUpperCase()===asnRoute);
+    const eta=releasedDate&&lt?new Date(new Date(releasedDate).getTime()+Number(lt.Dispatch_SLA)*86400000).toISOString().slice(0,10):'';
+    await _db.collection('asns').doc(asnId).update({Personnel_Code:personnelCode,Personnel_Name:p.Name,Personnel_Contact:p.Contact||'',Released_Date:releasedDate,Expected_Delivery:eta,Updated_At:_fbNow()});
+    return{ok:true};
+  }catch(e){return{ok:false,err:e.message};}
+}
+async function _fbGetPersonnelControlNumbers(code){
+  try{
+    const snap=await _db.collection('asns').where('Personnel_Code','==',code).where('Status','in',['Pending','Released']).get();
+    const pairs=[];const seen=new Set();
+    snap.docs.forEach(d=>{const a=d.data();const k=a.Control_No+'|'+a.Released_Date;if(!seen.has(k)){seen.add(k);pairs.push({controlNo:a.Control_No,releasedDate:a.Released_Date,label:`${a.Control_No} — ${a.Route} (${fmtDate(a.Released_Date)})`});}});
+    return{ok:true,pairs};
+  }catch(e){return{ok:false,err:e.message};}
+}
+async function _fbGetCustomerControlNumbers(code){
+  try{
+    const snap=await _db.collection('asns').where('Cust_Code','==',code).where('Status','!=','Voided').get();
+    const pairs=[];const seen=new Set();
+    snap.docs.forEach(d=>{const a=d.data();const k=a.Control_No+'|'+a.Released_Date;if(!seen.has(k)){seen.add(k);pairs.push({controlNo:a.Control_No,releasedDate:a.Released_Date,label:`${a.Control_No} — ${a.Route} (${fmtDate(a.Released_Date)})`});}});
+    return{ok:true,pairs};
+  }catch(e){return{ok:false,err:e.message};}
+}
+async function _fbGetPersonnelRun(code,controlNo,releasedDate){
+  try{
+    const snap=await _db.collection('asns').where('Personnel_Code','==',code).where('Control_No','==',controlNo).where('Released_Date','==',releasedDate).get();
+    if(snap.empty)return{ok:true,run:[]};
+    const asnIds=snap.docs.map(d=>d.id);
+    const [linesSnap,tagsSnap]=await Promise.all([
+      Promise.all(asnIds.map(id=>_db.collection('asn_lines').where('ASN_ID','==',id).get())),
+      Promise.all(asnIds.map(id=>_db.collection('delivery_tags').where('ASN_ID','==',id).get()))
+    ]);
+    const run=snap.docs.map((d,i)=>{
+      const asn=d.data();const lines=linesSnap[i].docs.map(l=>l.data());
+      const tags=tagsSnap[i].docs.map(t=>t.data());const tagMap={};tags.forEach(t=>tagMap[t.SI_No]=t);
+      const siGroups={};
+      lines.forEach(l=>{const si=l.SI_No||l.siNumber;if(!siGroups[si])siGroups[si]={siNo:si,soNo:l.SO_No||l.soNumber,items:[],tagged:!!tagMap[si],delivInstr:l.delivInstr||'',recvFrom:l.recvFrom||'',recvTo:l.recvTo||'',mop:l.mop||l.MOP||''};siGroups[si].items.push(l);});
+      const salesInvoices=Object.values(siGroups);
+      const allTagged=salesInvoices.every(s=>s.tagged);
+      const partialTagged=!allTagged&&salesInvoices.some(s=>s.tagged);
+      return{asnId:d.id,custName:asn.Cust_Name,custCode:asn.Cust_Code,address:asn.Cust_Address||'',stopNo:asn.Stop_No||'',route:asn.Route,cases:lines[0]?.cases||'',bags:lines[0]?.bags||'',freeGoods:lines[0]?.freeGoods||'',salesInvoices,allTagged,partialTagged,tagMap,status:asn.Status};
+    });
+    run.sort((a,b)=>(Number(a.stopNo)||0)-(Number(b.stopNo)||0));
+    return{ok:true,run};
+  }catch(e){return{ok:false,err:e.message};}
+}
+async function _fbSetRunReleased(personnelCode){
+  try{
+    const snap=await _db.collection('asns').where('Personnel_Code','==',personnelCode).where('Status','==','Pending').get();
+    const b=_db.batch();snap.docs.forEach(d=>b.update(d.ref,{Status:'Released',Updated_At:_fbNow()}));
+    await b.commit();return{ok:true,count:snap.size};
+  }catch(e){return{ok:false,err:e.message};}
+}
+async function _fbSaveTag(tag){
+  try{
+    await _db.collection('delivery_tags').doc(tag.ASN_ID+'__'+tag.SI_No).set({...tag,Tagged_At:_fbNow()});
+    await _fbResolveASNStatus(tag.ASN_ID);
+    return{ok:true};
+  }catch(e){return{ok:false,err:e.message};}
+}
+async function _fbResolveASNStatus(asnId){
+  try{
+    const [linesSnap,tagsSnap]=await Promise.all([
+      _db.collection('asn_lines').where('ASN_ID','==',asnId).get(),
+      _db.collection('delivery_tags').where('ASN_ID','==',asnId).get()
+    ]);
+    const siSet=[...new Set(linesSnap.docs.map(d=>d.data().SI_No||d.data().siNumber))];
+    const tagMap={};tagsSnap.docs.forEach(d=>{tagMap[d.data().SI_No]=d.data().Del_Status;});
+    const allTagged=siSet.every(si=>tagMap[si]);
+    if(!allTagged)return;
+    const statuses=siSet.map(si=>tagMap[si]);
+    let finalStatus='Delivered';
+    if(statuses.every(s=>s==='Returned'))finalStatus='Returned';
+    else if(statuses.every(s=>s==='Rescheduled'))finalStatus='Rescheduled';
+    else if(statuses.some(s=>s==='Delivered'))finalStatus='Delivered';
+    await _db.collection('asns').doc(asnId).update({Status:finalStatus,Updated_At:_fbNow()});
+  }catch(e){console.error(e);}
+}
+async function _fbGetCustomerASNs(code,controlNo,releasedDate){
+  try{
+    let q=_db.collection('asns').where('Cust_Code','==',code).where('Status','!=','Voided');
+    if(controlNo)q=q.where('Control_No','==',controlNo);
+    const snap=await q.get();
+    const asnIds=snap.docs.map(d=>d.id);
+    const lineSnaps=await Promise.all(asnIds.map(id=>_db.collection('asn_lines').where('ASN_ID','==',id).get()));
+    const tagSnaps=await Promise.all(asnIds.map(id=>_db.collection('delivery_tags').where('ASN_ID','==',id).get()));
+    const asns=snap.docs.map((d,i)=>({...d.data(),id:d.id,lines:lineSnaps[i].docs.map(l=>l.data()),tags:tagSnaps[i].docs.map(t=>t.data())}));
+    return{ok:true,asns};
+  }catch(e){return{ok:false,err:e.message};}
+}
+async function _fbGetLiveTracker(){
+  try{
+    const [asnSnap,tagSnap]=await Promise.all([
+      _db.collection('asns').where('Status','in',['Released','Pending']).get(),
+      _db.collection('delivery_tags').get()
+    ]);
+    const tagMap={};tagSnap.docs.forEach(d=>{const t=d.data();if(!tagMap[t.Personnel_Code])tagMap[t.Personnel_Code]={done:0};tagMap[t.Personnel_Code].done++;});
+    const personnel={};
+    asnSnap.docs.forEach(d=>{const a=d.data();if(!a.Personnel_Code)return;if(!personnel[a.Personnel_Code])personnel[a.Personnel_Code]={code:a.Personnel_Code,name:a.Personnel_Name||a.Personnel_Code,route:a.Route,total:0,done:0,stops:[]};personnel[a.Personnel_Code].total++;personnel[a.Personnel_Code].stops.push({custName:a.Cust_Name,status:a.Status});});
+    Object.keys(personnel).forEach(code=>{personnel[code].done=(tagMap[code]?.done||0);});
+    return{ok:true,tracker:Object.values(personnel),asOf:_fbNow()};
+  }catch(e){return{ok:false,err:e.message};}
+}
+async function _fbGetRunControlNumbers(){
+  try{
+    const snap=await _db.collection('asns').get();
+    const pairs=[];const seen=new Set();
+    snap.docs.forEach(d=>{const a=d.data();const k=a.Control_No+'|'+a.Released_Date;if(!seen.has(k)&&a.Control_No){seen.add(k);pairs.push({controlNo:a.Control_No,releasedDate:a.Released_Date,route:a.Route,label:`${a.Control_No} — ${a.Route}`});}});
+    return{ok:true,pairs};
+  }catch(e){return{ok:false,err:e.message};}
+}
+async function _fbGetRunReport(controlNo,releasedDate){
+  try{
+    const snap=await _db.collection('asns').where('Control_No','==',controlNo).where('Released_Date','==',releasedDate).get();
+    const asnIds=snap.docs.map(d=>d.id);
+    const[lSnaps,tSnaps]=await Promise.all([
+      Promise.all(asnIds.map(id=>_db.collection('asn_lines').where('ASN_ID','==',id).get())),
+      Promise.all(asnIds.map(id=>_db.collection('delivery_tags').where('ASN_ID','==',id).get()))
+    ]);
+    const customers=snap.docs.map((d,i)=>{
+      const asn=d.data();const lines=lSnaps[i].docs.map(l=>l.data());const tags=tSnaps[i].docs.map(t=>t.data());
+      const tagMap={};tags.forEach(t=>tagMap[t.SI_No]=t);
+      const siGroups={};lines.forEach(l=>{const si=l.SI_No||l.siNumber;if(!siGroups[si])siGroups[si]={siNo:si,items:[],tag:tagMap[si]||null};siGroups[si].items.push(l);});
+      const total=lines.reduce((s,l)=>s+(Number(l.Line_Total||l.lineTotal)||0),0);
+      return{asnId:d.id,custName:asn.Cust_Name,custCode:asn.Cust_Code,status:asn.Status,total,siGroups:Object.values(siGroups),tags};
+    });
+    const first=snap.docs[0]?.data()||{};
+    const totVal=customers.reduce((s,c)=>s+c.total,0);
+    const delivered=customers.filter(c=>c.status==='Delivered').length;
+    const returned=customers.filter(c=>c.status==='Returned').length;
+    const rescheduled=customers.filter(c=>c.status==='Rescheduled').length;
+    const pending=customers.filter(c=>['Pending','Released'].includes(c.status)).length;
+    const deliveredVal=customers.filter(c=>c.status==='Delivered').reduce((s,c)=>s+c.total,0);
+    const returnedVal=customers.filter(c=>c.status==='Returned').reduce((s,c)=>s+c.total,0);
+    const rescheduledVal=customers.filter(c=>c.status==='Rescheduled').reduce((s,c)=>s+c.total,0);
+    const totalSIs=[...new Set(customers.flatMap(c=>c.siGroups.map(s=>s.siNo)))].length;
+    const totalItems=customers.reduce((s,c)=>s+c.siGroups.reduce((ss,sg)=>ss+sg.items.length,0),0);
+    const summary={route:first.Route||'',controlNo,releasedDate,personnelName:first.Personnel_Name||'',truckPlate:first.Truck_Plate||'',totalCustomers:customers.length,totalSIs,totalItems,totalValue:totVal,delivered,returned,rescheduled,pending,completionRate:customers.length?Math.round((delivered+returned+rescheduled)/customers.length*100):0,deliveredVal,returnedVal,rescheduledVal};
+    return{ok:true,summary,customers};
+  }catch(e){return{ok:false,err:e.message};}
+}
+async function _fbExportASNDetail(asnId){
+  return _fbGetASNDetail(asnId);
+}
+
+function srv(fn,...args){
+  if(fn==='uploadPhoto')return new Promise((res,rej)=>{google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](...args);});
+  const map={
+    validatePin:_fbValidatePin,changePin:_fbChangePin,
+    loginPersonnel:_fbLoginPersonnelWithPw,loginCustomer:_fbLoginCustomer,
+    getPersonnel:_fbGetPersonnel,addPersonnel:_fbAddPersonnel,removePersonnel:_fbRemovePersonnel,
+    getLeadTimes:_fbGetLeadTimes,saveLeadTime:_fbSaveLeadTime,deleteLeadTime:_fbDeleteLeadTime,
+    getSIStagingStats:_fbGetSIStagingStats,uploadSIStaging:_fbUploadSIStaging,getSIStagingByNumbers:_fbGetSIStagingByNumbers,
+    detectDuplicateASNs:_fbDetectDuplicateASNs,publishBatch:_fbPublishBatch,
+    getASNList:_fbGetASNList,getASNDetail:_fbGetASNDetail,setStatus:_fbSetStatus,
+    voidASN:_fbVoidASN,getDuplicateASNs:_fbGetDuplicateASNs,bulkVoidASNs:_fbBulkVoidASNs,
+    assignPersonnelToASN:_fbAssignPersonnelToASN,
+    getPersonnelRun:_fbGetPersonnelRun,setRunReleased:_fbSetRunReleased,saveTag:_fbSaveTag,
+    getCustomerASNs:_fbGetCustomerASNs,getLiveTracker:_fbGetLiveTracker,
+    getRunControlNumbers:_fbGetRunControlNumbers,getRunReport:_fbGetRunReport,exportASNDetail:_fbExportASNDetail,
+    loginDispatch:_fbLoginDispatch,validateSalesPin:_fbValidateSalesPin,changeSalesPin:_fbChangeSalesPin,
+    saveNewPassword:_fbSaveNewPassword,changeOwnPassword:_fbChangeOwnPassword,
+    adminResetPassword:_fbAdminResetPassword,getAllUsers:_fbGetAllUsers,addUser:_fbAddUser,toggleUser:_fbToggleUser,editUser:_fbEditUser
+  };
+  const h=map[fn];if(!h)return Promise.reject(new Error('Unknown:'+fn));
+  return h(...args);
+}
+
+var _trackerUnsubAsns=null,_trackerUnsubTags=null;
+function startTrackerLive(){
+  stopTrackerLive();
+  const trigger=()=>{if(document.getElementById('tab-tracker')?.classList.contains('active'))loadTracker();};
+  _trackerUnsubAsns=_db.collection('asns').onSnapshot(trigger,e=>console.error(e));
+  _trackerUnsubTags=_db.collection('delivery_tags').onSnapshot(trigger,e=>console.error(e));
+}
+function stopTrackerLive(){
+  if(_trackerUnsubAsns){_trackerUnsubAsns();_trackerUnsubAsns=null;}
+  if(_trackerUnsubTags){_trackerUnsubTags();_trackerUnsubTags=null;}
+}
+
+function _s(v){return(v===null||v===undefined)?'':String(v);}
+var _tt;
+function toast(msg,type=''){const el=document.getElementById('toast');el.textContent=msg;el.className='show '+type;clearTimeout(_tt);_tt=setTimeout(()=>{el.className=''},3400);}
+function spin(msg='Please wait…'){document.getElementById('spinner-msg').textContent=msg;document.getElementById('spinner').classList.add('show');}
+function unspin(){document.getElementById('spinner').classList.remove('show');}
+function show(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));const el=document.getElementById(id);if(el)el.classList.add('active');window.scrollTo(0,0);}
+function today(){return new Date().toISOString().slice(0,10);}
+function fmt(v){if(!v)return'—';const d=new Date(_s(v));if(isNaN(d))return _s(v);return d.toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})+' '+d.toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'});}
+function fmtDate(v){if(!v)return'—';const d=new Date(_s(v));return isNaN(d)?_s(v):d.toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'});}
+function peso(n){return'₱'+(Number(n)||0).toLocaleString('en-PH',{minimumFractionDigits:2});}
+function badge(status){const m={'Pending':'badge-pending','Released':'badge-released','Delivered':'badge-delivered','Returned':'badge-returned','Rescheduled':'badge-rescheduled','Voided':'badge-voided'};return`<span class="badge ${m[status]||'badge-pending'}">${_s(status)||'Pending'}</span>`;}
+function modal(title,body,buttons,inputCfg=null,extraHtml=''){
+  document.getElementById('modal-title').textContent=title;
+  document.getElementById('modal-body').textContent=body;
+  document.getElementById('modal-extra').innerHTML=extraHtml;
+  const ig=document.getElementById('modal-input-group');
+  if(inputCfg){ig.style.display='block';document.getElementById('modal-input-label').textContent=inputCfg.label||'';document.getElementById('modal-input').value=inputCfg.value||'';}else{ig.style.display='none';}
+  const ma=document.getElementById('modal-actions');ma.innerHTML='';
+  buttons.forEach(b=>{const btn=document.createElement('button');btn.className='btn '+b.cls;btn.textContent=b.label;btn.onclick=()=>{closeModal();b.action();};ma.appendChild(btn);});
+  document.getElementById('modal-overlay').classList.add('show');
+}
+function closeModal(){document.getElementById('modal-overlay').classList.remove('show');}
+
+function goDispatch(){show('v-dispatch-login');['disp-code-inp','disp-pw-inp','disp-login-err'].forEach(id=>{const el=document.getElementById(id);if(el){if(id.includes('err'))el.textContent='';else el.value='';}});}
+function goEmergency(){show('v-emergency-login');document.getElementById('emergency-pin-inp').value='';document.getElementById('emg-login-err').textContent='';}
+function goPersonnel(){show('v-personnel-login');['personnel-code-inp','personnel-pw-inp','pers-login-err'].forEach(id=>{const el=document.getElementById(id);if(el){if(id.includes('err'))el.textContent='';else el.value='';}});}
+function goCustomer(){show('v-customer-login');document.getElementById('cust-code-inp').value='';}
+function goSales(){show('v-sales-login');document.getElementById('sales-pin-inp').value='';document.getElementById('sales-login-err').textContent='';}
+function logout(){
+  document.body.className='';
+  S.role=null;S.user=null;S.personnelInfo=null;S.customerCode=null;S.changePasswordCtx=null;
+  stopTrackerLive();show('v-landing');
+}
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  const tabEl=document.getElementById('tab-'+name);
+  const tcEl=document.getElementById('tc-'+name);
+  if(tabEl)tabEl.classList.add('active');
+  if(tcEl)tcEl.classList.add('active');
+  if(name==='manage')loadASNList();
+  if(name==='tracker'){loadTracker();startTrackerLive();}
+  if(name==='settings'){loadPersonnelList();loadLeadTimesTable();}
+  if(name==='upload')loadSIStats();
+  if(name==='reports')loadReportControls();
+}
+function switchSubTab(name,el){
+  document.querySelectorAll('#settings-sub-tabs .sub-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('#tc-settings .sub-panel').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('sp-'+name).classList.add('active');
+  if(name==='users')loadUsersTable();
+}
+function switchSalesTab(name){
+  document.querySelectorAll('[id^="stab-"]').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('[id^="stc-"]').forEach(t=>t.classList.remove('active'));
+  document.getElementById('stab-'+name).classList.add('active');
+  document.getElementById('stc-'+name).classList.add('active');
+  if(name==='tracker')loadSalesTracker();
+}
+
+async function doDispatchLogin(){
+  const code=document.getElementById('disp-code-inp').value.trim().toUpperCase();
+  const pw=document.getElementById('disp-pw-inp').value;
+  const errEl=document.getElementById('disp-login-err');
+  errEl.textContent='';
+  if(!code||!pw){errEl.textContent='Enter code and password.';return;}
+  spin('Verifying…');
+  try{
+    const r=await _fbLoginDispatch(code,pw);
+    unspin();
+    if(!r.ok){errEl.textContent='Invalid code or password.';return;}
+    S.role=r.role;S.user={code,name:r.name,role:r.role};
+    document.body.className=r.role==='superadmin'?'admin-mode':'';
+    document.getElementById('hdr-uname').textContent=r.name;
+    document.getElementById('hdr-urole').textContent=r.role==='superadmin'?'Super Admin':'Dispatcher';
+    if(r.mustChangePassword){
+      S.changePasswordCtx={code,col:'users',from:'dispatch',mustChange:true};
+      document.getElementById('cpw-heading').textContent='Set New Password';
+      document.getElementById('cpw-note').textContent='You must set a new password before continuing.';
+      document.getElementById('cpw-back-btn').style.display='none';
+      document.getElementById('cpw-new').value='';document.getElementById('cpw-confirm').value='';document.getElementById('cpw-err').textContent='';
+      show('v-change-password');
+    }else{
+      show('v-dispatch');loadPersonnelList();loadLeadTimes();loadSIStats();
+    }
+  }catch(e){errEl.textContent='Error: '+e.message;unspin();}
+}
+async function doEmergencyLogin(){
+  const pin=document.getElementById('emergency-pin-inp').value.trim();
+  const errEl=document.getElementById('emg-login-err');errEl.textContent='';
+  if(!pin){errEl.textContent='Enter emergency PIN.';return;}
+  spin('Verifying…');
+  try{
+    const r=await _fbValidatePin(pin);
+    unspin();
+    if(!r.ok){errEl.textContent='Incorrect PIN.';return;}
+    S.role='emergency';S.user={code:'EMERGENCY',name:'Emergency Access',role:'emergency'};
+    document.body.className='';
+    document.getElementById('hdr-uname').textContent='Emergency Access';
+    document.getElementById('hdr-urole').textContent='Emergency';
+    show('v-dispatch');loadPersonnelList();loadLeadTimes();loadSIStats();
+  }catch(e){errEl.textContent='Error: '+e.message;unspin();}
+}
+async function doPersonnelLogin(){
+  const code=document.getElementById('personnel-code-inp').value.trim().toUpperCase();
+  const pw=document.getElementById('personnel-pw-inp').value;
+  const errEl=document.getElementById('pers-login-err');errEl.textContent='';
+  if(!code||!pw){errEl.textContent='Enter code and password.';return;}
+  spin('Checking in…');
+  try{
+    const r=await _fbLoginPersonnelWithPw(code,pw);
+    unspin();
+    if(!r.ok){errEl.textContent='Invalid code or password. Contact dispatch.';return;}
+    S.personnelInfo={ok:true,name:r.name,contact:r.contact,code:r.code};
+    if(r.mustChangePassword){
+      S.personnelControlPairs=r.pairs;
+      S.changePasswordCtx={code:r.code,col:'personnel',from:'personnel',mustChange:true};
+      document.getElementById('cpw-heading').textContent='Set New Password';
+      document.getElementById('cpw-note').textContent='You must set a new password before continuing.';
+      document.getElementById('cpw-back-btn').style.display='none';
+      document.getElementById('cpw-new').value='';document.getElementById('cpw-confirm').value='';document.getElementById('cpw-err').textContent='';
+      show('v-change-password');
+    }else{
+      S.personnelControlPairs=r.pairs;
+      if(!r.pairs||!r.pairs.length){toast('No active deliveries assigned.','warn');return;}
+      document.getElementById('pers-select-name').textContent='Hello, '+r.name+'!';
+      const sel=document.getElementById('pers-control-select');
+      sel.innerHTML='<option value="">— Select a run —</option>';
+      r.pairs.forEach((p,i)=>{sel.innerHTML+=`<option value="${i}">${_s(p.label)}</option>`;});
+      show('v-personnel-select');
+    }
+  }catch(e){errEl.textContent='Error: '+e.message;unspin();}
+}
+async function doSalesLogin(){
+  const pin=document.getElementById('sales-pin-inp').value.trim();
+  const errEl=document.getElementById('sales-login-err');errEl.textContent='';
+  if(!pin){errEl.textContent='Enter sales PIN.';return;}
+  spin('Verifying…');
+  try{
+    const r=await _fbValidateSalesPin(pin);
+    unspin();
+    if(!r.ok){errEl.textContent=r.msg||'Incorrect PIN.';return;}
+    S.role='sales';document.body.classList.add('sales-mode');
+    show('v-sales');loadSalesData();
+  }catch(e){errEl.textContent='Error: '+e.message;unspin();}
+}
+async function doSaveNewPassword(){
+  const nw=document.getElementById('cpw-new').value;
+  const cfm=document.getElementById('cpw-confirm').value;
+  const errEl=document.getElementById('cpw-err');errEl.textContent='';
+  if(!nw||nw.length<6){errEl.textContent='Password must be at least 6 characters.';return;}
+  if(nw!==cfm){errEl.textContent='Passwords do not match.';return;}
+  const ctx=S.changePasswordCtx;
+  spin('Saving…');
+  const r=await srv('saveNewPassword',ctx.code,ctx.col,nw);
+  unspin();
+  if(!r.ok){errEl.textContent=r.msg||'Error saving password.';return;}
+  toast('Password set! Welcome.','ok');
+  if(ctx.from==='dispatch'){
+    show('v-dispatch');loadPersonnelList();loadLeadTimes();loadSIStats();
+  }else{
+    if(!S.personnelControlPairs||!S.personnelControlPairs.length){toast('No active deliveries.','warn');show('v-landing');return;}
+    document.getElementById('pers-select-name').textContent='Hello, '+(S.personnelInfo?.name||'')+'!';
+    const sel=document.getElementById('pers-control-select');
+    sel.innerHTML='<option value="">— Select a run —</option>';
+    S.personnelControlPairs.forEach((p,i)=>{sel.innerHTML+=`<option value="${i}">${_s(p.label)}</option>`;});
+    show('v-personnel-select');
+  }
+}
+function cancelChangePassword(){
+  const ctx=S.changePasswordCtx;
+  if(ctx?.from==='dispatch')show('v-dispatch');
+  else show('v-landing');
+}
+async function doChangeMyPassword(){
+  const cur=document.getElementById('mypw-cur').value;
+  const nw=document.getElementById('mypw-new').value;
+  const cfm=document.getElementById('mypw-confirm').value;
+  if(!cur||!nw||!cfm){toast('All fields required.','warn');return;}
+  if(nw!==cfm){toast('Passwords do not match.','warn');return;}
+  if(!S.user){toast('Not logged in.','err');return;}
+  spin();
+  const r=await srv('changeOwnPassword',S.user.code,'users',cur,nw);
+  unspin();
+  if(r.ok){toast('Password updated.','ok');['mypw-cur','mypw-new','mypw-confirm'].forEach(i=>document.getElementById(i).value='');}
+  else toast(r.msg||'Error','err');
+}
+async function doChangeSalesPin(){
+  const cur=document.getElementById('sp-cur').value;
+  const nw=document.getElementById('sp-new').value;
+  if(!nw){toast('New PIN is required.','warn');return;}
+  spin();const r=await srv('changeSalesPin',cur,nw);unspin();
+  if(r.ok){toast('Sales PIN updated.','ok');document.getElementById('sp-cur').value='';document.getElementById('sp-new').value='';}
+  else toast(r.msg||'Error','err');
+}
+async function doChangeEmergencyPin(){
+  const cur=document.getElementById('ep-cur').value;
+  const nw=document.getElementById('ep-new').value;
+  if(!cur||!nw){toast('Both fields required.','warn');return;}
+  spin();const r=await srv('changePin',cur,nw);unspin();
+  if(r.ok){toast('Emergency PIN updated.','ok');document.getElementById('ep-cur').value='';document.getElementById('ep-new').value='';}
+  else toast(r.msg||'Error','err');
+}
+
+async function loadUsersTable(){
+  spin();const r=await srv('getAllUsers');unspin();
+  if(!r.ok){toast('Error loading users','err');return;}
+  const el=document.getElementById('users-list-body');
+  if(!r.users.length){el.innerHTML='<p class="text-muted" style="text-align:center;padding:20px">No dispatcher accounts. Add one above.</p>';return;}
+  el.innerHTML=`<div class="tbl-wrap"><table>
+    <thead><tr><th>Code</th><th>Name</th><th>Role</th><th>Status</th><th></th></tr></thead>
+    <tbody>${r.users.map(u=>`<tr>
+      <td class="mono">${_s(u.code)}</td><td>${_s(u.name)}</td>
+      <td><span class="badge ${u.role==='superadmin'?'badge-released':'badge-pending'}">${_s(u.role)}</span></td>
+      <td>${u.active?'<span style="color:var(--green);font-weight:600">Active</span>':'<span style="color:var(--tx3)">Inactive</span>'}</td>
+      <td><div style="display:flex;gap:5px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="editUserModal('${_s(u.code)}','${_s(u.name)}','${_s(u.role)}')">✏️ Edit</button>
+        <button class="btn btn-ghost btn-sm" onclick="resetUserPwConfirm('${_s(u.code)}')">Reset PW</button>
+        <button class="btn btn-sm" style="background:${u.active?'var(--danger-lt)':'var(--green-lt)'};color:${u.active?'var(--danger)':'var(--green)'}" onclick="toggleUserConfirm('${_s(u.code)}',${!u.active})">${u.active?'Deactivate':'Activate'}</button>
+      </div></td>
+    </tr>`).join('')}</tbody></table></div>`;
+}
+async function doAddDispatcher(){
+  const code=document.getElementById('usr-code').value.trim().toUpperCase();
+  const name=document.getElementById('usr-name').value.trim();
+  const role=document.getElementById('usr-role').value;
+  if(!code||!name||!role){toast('All fields required.','warn');return;}
+  spin();const r=await srv('addUser',code,name,role);unspin();
+  if(r.ok){toast('User added. Default password: GMPI@2026','ok');document.getElementById('user-add-form').style.display='none';['usr-code','usr-name'].forEach(i=>document.getElementById(i).value='');await loadUsersTable();}
+  else toast(r.msg||'Error','err');
+}
+function resetUserPwConfirm(code){
+  modal('Reset password?',`Reset ${code} password to GMPI@2026? They must change it on next login.`,[
+    {label:'Cancel',cls:'btn-ghost',action:()=>{}},
+    {label:'Reset',cls:'btn-danger',action:async()=>{spin();const r=await srv('adminResetPassword',code);unspin();if(r.ok)toast('Password reset.','ok');else toast('Error','err');}}
+  ]);
+}
+function toggleUserConfirm(code,activate){
+  modal(activate?'Activate user?':'Deactivate user?',`${activate?'Activate':'Deactivate'} account ${code}?`,[
+    {label:'Cancel',cls:'btn-ghost',action:()=>{}},
+    {label:activate?'Activate':'Deactivate',cls:activate?'btn-green':'btn-danger',action:async()=>{spin();const r=await srv('toggleUser',code,activate);unspin();if(r.ok){toast('Done.','ok');await loadUsersTable();}else toast('Error','err');}}
+  ]);
+}
+function editUserModal(code,name,role){
+  const extra=`<div style="display:flex;flex-direction:column;gap:12px;margin-top:8px">
+    <div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:4px">Code (cannot change)</label>
+    <input class="inp" value="${code}" disabled style="opacity:.5"></div>
+    <div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:4px">Name</label>
+    <input class="inp" id="edit-usr-name" value="${name}" placeholder="Full name"></div>
+    <div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:4px">Role</label>
+    <select class="inp" id="edit-usr-role">
+      <option value="dispatcher" ${role==='dispatcher'?'selected':''}>Dispatcher</option>
+      <option value="superadmin" ${role==='superadmin'?'selected':''}>Superadmin</option>
+    </select></div>
+  </div>`;
+  modal('Edit User · '+code,'',[
+    {label:'Cancel',cls:'btn-ghost',action:()=>{}},
+    {label:'Save Changes',cls:'btn-gold',action:async()=>{
+      const n=document.getElementById('edit-usr-name').value.trim();
+      const r=document.getElementById('edit-usr-role').value;
+      if(!n){toast('Name is required.','warn');return;}
+      spin();const res=await srv('editUser',code,n,r);unspin();
+      if(res.ok){toast('User updated.','ok');await loadUsersTable();}
+      else toast(res.msg||'Error','err');
+    }}
+  ],null,extra);
+}
+
+async function loadPersonnelList(){
+  try{const r=await srv('getPersonnel');if(!r.ok)return;S.personnelList=r.personnel||[];renderPersonnelTable();}
+  catch(e){console.error(e);}
+}
+function renderPersonnelTable(){
+  const el=document.getElementById('personnel-list-body');if(!el)return;
+  if(!S.personnelList.length){el.innerHTML='<p class="text-muted" style="text-align:center;padding:20px">No delivery personnel registered.</p>';return;}
+  el.innerHTML=`<div class="tbl-wrap"><table>
+    <thead><tr><th>Code</th><th>Name</th><th>Contact</th><th>PW Status</th><th></th></tr></thead>
+    <tbody>${S.personnelList.map(p=>`<tr>
+      <td class="mono">${_s(p.code)}</td><td>${_s(p.name)}</td><td>${_s(p.contact)||'—'}</td>
+      <td><span style="font-size:11px;color:var(--tx3)">Has password</span></td>
+      <td><div style="display:flex;gap:5px">
+        <button class="btn btn-sm" style="background:var(--danger-lt);color:var(--danger)" onclick="removePersonnelConfirm('${_s(p.code)}')">Remove</button>
+      </div></td>
+    </tr>`).join('')}</tbody></table></div>`;
+}
+function showAddPersonnel(){document.getElementById('personnel-add-form').style.display='block';}
+async function doAddPersonnel(){
+  const code=document.getElementById('pers-code').value.trim().toUpperCase();
+  const name=document.getElementById('pers-name').value.trim();
+  const contact=document.getElementById('pers-contact').value.trim();
+  if(!code||!name){toast('Code and name required.','warn');return;}
+  spin();const r=await srv('addPersonnel',code,name,contact);unspin();
+  if(r.ok){toast('Personnel added. Default password: GMPI@2026','ok');document.getElementById('personnel-add-form').style.display='none';['pers-code','pers-name','pers-contact'].forEach(i=>document.getElementById(i).value='');await loadPersonnelList();}
+  else toast('Error: '+(r.msg||r.err),'err');
+}
+function removePersonnelConfirm(code){
+  modal('Remove personnel?',`Remove ${code}?`,[
+    {label:'Cancel',cls:'btn-ghost',action:()=>{}},
+    {label:'Remove',cls:'btn-danger',action:async()=>{spin();const r=await srv('removePersonnel',code);unspin();if(r.ok){toast('Removed.','ok');await loadPersonnelList();}else toast('Error','err');}}
+  ]);
+}
+
+async function loadLeadTimes(){
+  try{const r=await srv('getLeadTimes');if(r.ok)S.leadTimes=r.leadTimes||[];}catch(e){console.error(e);}
+}
+function calcETA(releasedDate,route){
+  if(!releasedDate||!S.leadTimes.length)return'';
+  const lt=S.leadTimes.find(r=>_s(r.Route).trim().toUpperCase()===_s(route).trim().toUpperCase());
+  if(!lt||!lt.Dispatch_SLA)return'';
+  const d=new Date(releasedDate);if(isNaN(d))return'';
+  d.setDate(d.getDate()+Number(lt.Dispatch_SLA));
+  return d.toISOString().slice(0,10);
+}
+async function loadLeadTimesTable(){
+  await loadLeadTimes();
+  const tbody=document.getElementById('lt-table-body');if(!tbody)return;
+  if(!S.leadTimes.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--tx3);padding:24px">No lead times defined.</td></tr>';return;}
+  tbody.innerHTML=S.leadTimes.map(lt=>`<tr>
+    <td class="mono" style="font-size:11px">${_s(lt.Route)}</td>
+    <td>${_s(lt.Cluster)||'—'}</td>
+    <td style="text-align:center;font-weight:600">${_s(lt.Dispatch_SLA)} days</td>
+    <td style="text-align:center">${_s(lt.Order_SLA)} days</td>
+    <td><div style="display:flex;gap:5px">
+      <button class="btn btn-ghost btn-sm" onclick="editLeadTime('${_s(lt.Route)}','${_s(lt.Cluster)}',${_s(lt.Dispatch_SLA)},${_s(lt.Order_SLA)})">Edit</button>
+      <button class="btn btn-sm" style="background:var(--danger-lt);color:var(--danger)" onclick="deleteLeadTimeConfirm('${_s(lt.Route)}')">Del</button>
+    </div></td>
+  </tr>`).join('');
+}
+function showAddLeadTime(){document.getElementById('lt-add-form').style.display='block';['lt-route','lt-cluster','lt-dsla','lt-osla'].forEach(i=>document.getElementById(i).value='');}
+function editLeadTime(route,cluster,dsla,osla){document.getElementById('lt-add-form').style.display='block';document.getElementById('lt-route').value=route;document.getElementById('lt-cluster').value=cluster||'';document.getElementById('lt-dsla').value=dsla;document.getElementById('lt-osla').value=osla;}
+async function doSaveLeadTime(){
+  const route=document.getElementById('lt-route').value.trim();
+  const cluster=document.getElementById('lt-cluster').value.trim();
+  const dsla=document.getElementById('lt-dsla').value;
+  const osla=document.getElementById('lt-osla').value;
+  if(!route||!dsla){toast('Route and Dispatch SLA required.','warn');return;}
+  spin();const r=await srv('saveLeadTime',route,cluster,Number(dsla),Number(osla));unspin();
+  if(r.ok){toast(r.action==='added'?'Route added.':'Route updated.','ok');document.getElementById('lt-add-form').style.display='none';await loadLeadTimesTable();}
+  else toast('Error: '+(r.err||r.msg),'err');
+}
+function deleteLeadTimeConfirm(route){
+  modal('Delete lead time?',`Remove ${route}?`,[
+    {label:'Cancel',cls:'btn-ghost',action:()=>{}},
+    {label:'Delete',cls:'btn-danger',action:async()=>{spin();const r=await srv('deleteLeadTime',route);unspin();if(r.ok){toast('Deleted.','ok');await loadLeadTimesTable();}else toast('Error','err');}}
+  ]);
+}
+async function loadSIStats(){
+  try{
+    const r=await srv('getSIStagingStats');
+    if(r.ok){
+      document.getElementById('si-stat-unique').textContent=r.unique||0;
+      document.getElementById('si-stat-total').textContent=r.total||0;
+    }
+  }catch(e){console.error(e);}
+}
+function onSIFileSelected(input){
+  const file=input.files[0];if(!file)return;
+  spin('Reading file…');
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array',cellDates:false});
+      const raw=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''});
+      S.siFileData=parseSIReport(raw);
+      document.getElementById('si-file-label').textContent=file.name+' ('+S.siFileData.length+' rows)';
+      document.getElementById('zone-si').classList.add('done');
+      document.getElementById('btn-upload-si').disabled=false;
+      toast('File ready. '+S.siFileData.length+' rows parsed.','ok');
+    }catch(err){toast('Error: '+err.message,'err');}
+    unspin();
+  };
+  reader.readAsArrayBuffer(file);
+}
+async function doUploadSI(){
+  if(!S.siFileData||!S.siFileData.length){toast('No file loaded.','warn');return;}
+  const BATCH=500;let uploaded=0;
+  const prog=document.getElementById('si-upload-progress');
+  prog.style.display='block';
+  document.getElementById('btn-upload-si').disabled=true;
+  try{
+    for(let i=0;i<S.siFileData.length;i+=BATCH){
+      const chunk=S.siFileData.slice(i,i+BATCH);
+      prog.textContent=`Uploading… ${Math.min(i+BATCH,S.siFileData.length)} / ${S.siFileData.length}`;
+      const r=await srv('uploadSIStaging',chunk.map(row=>({
+        SI_Number:row.siNumber,Item_Code:row.itemCode,Item_Name:row.itemName,
+        Cust_Code:row.custCode,Cust_Name:row.custName,Address:row.address,
+        Group_Name:row.groupName,Route:row.route,Quantity:row.quantity,
+        UOM:row.uom,Lowest_Qty:row.lowestQty,Lowest_UOM:row.lowestUom,
+        Unit_Price:row.unitPrice,Line_Total:row.lineTotal,Branch:row.branch,
+        Posting_Date:row.postingDate
+      })));
+      if(!r.ok){toast('Upload error: '+(r.err||'batch failed'),'err');break;}
+      uploaded+=chunk.length;
+    }
+    prog.textContent='';prog.style.display='none';
+    document.getElementById('si-upload-result').innerHTML=`<div class="ok-box">&#x2705; Uploaded ${uploaded} rows successfully.</div>`;
+    await loadSIStats();
+    document.getElementById('si-ready-badge').style.display='block';
+    document.getElementById('si-ready-badge').innerHTML='<div class="ok-box">&#x2705; SI Staging ready. You can now upload a manifest.</div>';
+  }catch(e){toast('Error: '+e.message,'err');}
+  document.getElementById('btn-upload-si').disabled=false;
+}
+function parseSIReport(raw){
+  if(!raw.length)throw new Error('SI report is empty.');
+  const headers=raw[0].map(h=>_s(h).trim().toLowerCase());
+  const fi=pats=>{for(const p of pats){const i=headers.findIndex(h=>h.includes(p));if(i>=0)return i;}return -1;};
+  const C={postingDate:fi(['posting date']),docNo:fi(['document number','doc number']),
+    code:fi(['customer/vendor code','vendor code','customer code']),
+    name:fi(['customer/vendor name','vendor name','customer name']),
+    route:fi(['delivery route','route']),addr:fi(['bill-to street','street','address']),
+    group:fi(['group name']),itemNo:fi(['item no.','item no','item code']),
+    itemNm:fi(['item/service description','description']),qty:fi(['quantity']),unit:fi(['unit']),
+    lqty:fi(['lowest qty']),luom:fi(['lowest uom']),gprice:fi(['gross price']),
+    gtotal:fi(['gross total']),branch:fi(['branch name','branch'])};
+  return raw.slice(1).filter(r=>C.docNo>=0&&_s(r[C.docNo]).trim()).map(r=>({
+    postingDate:C.postingDate>=0?_s(r[C.postingDate]):'',siNumber:_s(r[C.docNo]).trim(),
+    custCode:C.code>=0?_s(r[C.code]).trim():'',custName:C.name>=0?_s(r[C.name]).trim():'',
+    route:C.route>=0?_s(r[C.route]).trim():'',address:C.addr>=0?_s(r[C.addr]).trim():'',
+    groupName:C.group>=0?_s(r[C.group]).trim():'',itemCode:C.itemNo>=0?_s(r[C.itemNo]).trim():'',
+    itemName:C.itemNm>=0?_s(r[C.itemNm]).trim():'',quantity:C.qty>=0?(Number(r[C.qty])||0):0,
+    uom:C.unit>=0?_s(r[C.unit]).trim():'',lowestQty:C.lqty>=0?(Number(r[C.lqty])||0):0,
+    lowestUom:C.luom>=0?_s(r[C.luom]).trim():'',unitPrice:C.gprice>=0?(Number(r[C.gprice])||0):0,
+    lineTotal:C.gtotal>=0?(Number(r[C.gtotal])||0):0,branch:C.branch>=0?_s(r[C.branch]).trim():''
+  }));
+}
+function parseManifest(wb,sheetName){
+  const raw=XLSX.utils.sheet_to_json(wb.Sheets[sheetName],{header:1,defval:''});
+  let hdrRow=-1;
+  for(let i=0;i<Math.min(10,raw.length);i++){
+    if(raw[i].some(c=>_s(c).toLowerCase().replace(/\s/g,'').includes('sino'))){hdrRow=i;break;}
+  }
+  if(hdrRow<0)throw new Error('Cannot find header row in manifest.');
+  let date='',route='',controlNo='';
+  for(let i=0;i<hdrRow;i++){
+    const row=raw[i];
+    for(let j=0;j<row.length;j++){
+      const cell=_s(row[j]).toLowerCase();
+      if(cell.includes('date')&&row[j+1])date=_s(row[j+1]);
+      if(cell.includes('route')&&row[j+1])route=_s(row[j+1]);
+      if(cell.includes('control')&&row[j+1])controlNo=_s(row[j+1]);
+    }
+  }
+  if(!route)route=sheetName;
+  const headers=raw[hdrRow].map(h=>_s(h).trim().toLowerCase());
+  const fi=pats=>{for(const p of pats){const i=headers.findIndex(h=>h.includes(p));if(i>=0)return i;}return -1;};
+  const C={stopNo:fi(['stop','n.']),deliv:fi(['delivery instruction','instruction']),
+    rfrom:fi(['receiving hour from','from']),rto:fi(['receiving hour to','to']),
+    mop:fi(['mode of payment','payment']),soNo:fi(['so no','so number']),
+    siNo:fi(['si no','si number']),cases:fi(['cases']),bags:fi(['bags']),free:fi(['free goods'])};
+  const stops=[];
+  for(let i=hdrRow+1;i<raw.length;i++){
+    const r=raw[i];const siNo=C.siNo>=0?_s(r[C.siNo]).trim():'';
+    if(!siNo||isNaN(Number(siNo)))continue;
+    stops.push({stopNo:C.stopNo>=0?_s(r[C.stopNo]).trim():'',delivInstr:C.deliv>=0?_s(r[C.deliv]).trim():'',
+      recvFrom:C.rfrom>=0?_s(r[C.rfrom]).trim():'',recvTo:C.rto>=0?_s(r[C.rto]).trim():'',
+      mop:C.mop>=0?_s(r[C.mop]).trim():'',soNo:C.soNo>=0?_s(r[C.soNo]).trim():'',siNo,
+      cases:C.cases>=0?_s(r[C.cases]).trim():'',bags:C.bags>=0?_s(r[C.bags]).trim():'',
+      freeGoods:C.free>=0?_s(r[C.free]).trim():''});
+  }
+  return{route,controlNo,date,stops};
+}
+function mergeData(manifestData,siItems){
+  const siLookup={};
+  siItems.forEach(it=>{const k=it.SI_Number||it.siNumber;if(!siLookup[k])siLookup[k]={...it,items:[]};siLookup[k].items.push(it);});
+  const custGroups={},unmatched=[];
+  manifestData.stops.forEach(stop=>{
+    const si=siLookup[stop.siNo];
+    if(!si){unmatched.push(stop);return;}
+    const ck=_s(si.Cust_Code||si.custCode||'').trim()||_s(si.Cust_Name||si.custName||'').trim();
+    if(!custGroups[ck])custGroups[ck]={
+      customerCode:_s(si.Cust_Code||si.custCode||'').trim(),
+      customerName:_s(si.Cust_Name||si.custName||'').trim(),
+      customerAddress:_s(si.Address||si.address||'').trim(),
+      groupName:_s(si.Group_Name||si.groupName||'').trim(),
+      route:manifestData.route,controlNumber:manifestData.controlNo,
+      deliveryDate:manifestData.date,releasedDate:'',truckPlate:'',
+      personnelName:'',personnelCode:'',personnelContact:'',expectedDelivery:'',lines:[]
+    };
+    si.items.forEach(item=>{
+      custGroups[ck].lines.push({
+        stopNo:stop.stopNo,soNumber:stop.soNo,siNumber:stop.siNo,
+        itemCode:_s(item.Item_Code||item.itemCode||''),itemName:_s(item.Item_Name||item.itemName||''),
+        quantity:Number(item.Quantity||item.quantity||0),uom:_s(item.UOM||item.uom||''),
+        lowestQty:Number(item.Lowest_Qty||item.lowestQty||0),lowestUom:_s(item.Lowest_UOM||item.lowestUom||''),
+        unitPrice:Number(item.Unit_Price||item.unitPrice||0),lineTotal:Number(item.Line_Total||item.lineTotal||0),
+        cases:stop.cases,bags:stop.bags,freeGoods:stop.freeGoods,
+        delivInstr:stop.delivInstr,recvFrom:stop.recvFrom,recvTo:stop.recvTo,mop:stop.mop,
+        groupName:_s(item.Group_Name||item.groupName||''),branch:_s(item.Branch||item.branch||''),remarks:''
+      });
+    });
+  });
+  const asns=Object.values(custGroups).map((a,i)=>({
+    ...a,ASN_ID:_fbId('ASN'),Status:'Pending',Created_At:_fbNow(),
+    Cust_Code:a.customerCode,Cust_Name:a.customerName,Cust_Address:a.customerAddress,
+    Route:a.route,Control_No:a.controlNumber,Stop_No:a.lines[0]?.stopNo||''
+  }));
+  return{asns,unmatched};
+}
+function onManifestUpload(input){
+  const file=input.files[0];if(!file)return;
+  spin('Reading manifest…');
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      S.manifestWB=XLSX.read(e.target.result,{type:'array',cellDates:false});
+      document.getElementById('manifest-label').textContent=file.name;
+      document.getElementById('zone-manifest').classList.add('done');
+      const sel=document.getElementById('sheet-selector');
+      sel.innerHTML='<option value="">— Choose route sheet —</option>';
+      S.manifestWB.SheetNames.forEach(n=>{const opt=document.createElement('option');opt.value=opt.textContent=n;sel.appendChild(opt);});
+      document.getElementById('sheet-selector-wrap').style.display='block';
+      checkParseReady();
+    }catch(err){toast('Error: '+err.message,'err');}
+    unspin();
+  };
+  reader.readAsArrayBuffer(file);
+}
+function checkParseReady(){
+  document.getElementById('btn-parse').disabled=!(S.manifestWB&&document.getElementById('sheet-selector').value!=='');
+}
+async function doParseAndMerge(){
+  const sheet=document.getElementById('sheet-selector').value;
+  if(!sheet||!S.manifestWB){toast('Select a manifest sheet.','warn');return;}
+  spin('Parsing manifest…');
+  try{
+    S.manifestData=parseManifest(S.manifestWB,sheet);
+    const siNosNeeded=[...new Set(S.manifestData.stops.map(s=>s.siNo))];
+    unspin();spin('Fetching SI data from staging…');
+    const siResult=await srv('getSIStagingByNumbers',siNosNeeded);
+    unspin();
+    if(!siResult.ok){toast('Error fetching SI data: '+(siResult.err||siResult.msg),'err');return;}
+    const{asns,unmatched}=mergeData(S.manifestData,siResult.items);
+    S.generatedASNs=asns;
+    const totalSIs=[...new Set(asns.flatMap(a=>a.lines.map(l=>l.siNumber)))].length;
+    document.getElementById('parse-summary').style.display='block';
+    const unmatchedHtml=unmatched.length?`<div class="warn-box" style="margin-top:10px"><strong>&#x26A0;&#xFE0F; ${unmatched.length} SI(s) not found in staging</strong><p style="font-size:11px;margin:5px 0">These are in the manifest but have no matching invoice in staging.</p></div>`:'';
+    document.getElementById('parse-summary').innerHTML=`
+      <div class="ok-box">&#x2705; Parsed: <strong>${asns.length}</strong> customers &middot; <strong>${totalSIs}</strong> invoices &middot; <strong>${asns.reduce((t,a)=>t+a.lines.length,0)}</strong> line items</div>
+      ${unmatchedHtml}
+      <button class="btn btn-gold" style="margin-top:10px" onclick="goReview()">Review &amp; Assign &rarr;</button>`;
+  }catch(e){toast('Error: '+e.message,'err');unspin();}
+}
+function goReview(){
+  const d=S.manifestData,asns=S.generatedASNs;
+  const totalSIs=[...new Set(asns.flatMap(a=>a.lines.map(l=>l.siNumber)))].length;
+  document.getElementById('rev-route').textContent='📍 '+(_s(d.route)||'—');
+  document.getElementById('rev-ctrlno').textContent='# '+(_s(d.controlNo)||'—');
+  document.getElementById('rev-date').textContent='📅 '+(d.date?fmtDate(d.date):'—');
+  document.getElementById('rv-cust').textContent=asns.length;
+  document.getElementById('rv-si').textContent=totalSIs;
+  document.getElementById('rv-items').textContent=asns.reduce((t,a)=>t+a.lines.length,0);
+  document.getElementById('rv-unmatched').textContent=0;
+  document.getElementById('bulk-released').value=today();
+  const sel=document.getElementById('bulk-personnel');
+  sel.innerHTML='<option value="">— Select —</option>';
+  S.personnelList.forEach(p=>sel.innerHTML+=`<option value="${_s(p.code)}" data-name="${_s(p.name)}" data-contact="${_s(p.contact)}">${_s(p.name)} (${_s(p.code)})</option>`);
+  renderReviewCards();
+  show('v-dispatch-review');
+}
+function renderReviewCards(){
+  const wrap=document.getElementById('asn-review-cards');wrap.innerHTML='';
+  S.generatedASNs.forEach((a,idx)=>{
+    const siSet=[...new Set(a.lines.map(l=>l.siNumber))];
+    const total=a.lines.reduce((t,l)=>t+(Number(l.lineTotal)||0),0);
+    const eta=a.expectedDelivery||calcETA(a.releasedDate||today(),a.route);
+    if(eta&&!a.expectedDelivery)a.expectedDelivery=eta;
+    const missing=!a.releasedDate||!a.personnelCode||!a.truckPlate;
+    wrap.innerHTML+=`<div class="asn-card ${missing?'incomplete':''}" id="asncard-${idx}">
+      <div class="asn-card-hd" onclick="this.parentElement.classList.toggle('open')">
+        <div style="flex:1">
+          <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:13px">${_s(a.customerName)}</div>
+          <div style="font-size:11px;color:var(--tx3);margin-top:3px">${siSet.length} invoice(s) &middot; ${a.lines.length} items &middot; ${peso(total)}</div>
+        </div>
+        <span class="chevron">&#x25BC;</span>
+      </div>
+      <div class="asn-card-body">
+        <div class="grid-4" style="margin-bottom:10px">
+          <div class="form-group" style="margin:0"><label>Released Date</label><input type="date" class="inp" value="${_s(a.releasedDate)}" onchange="S.generatedASNs[${idx}].releasedDate=this.value;autoETA(${idx})"></div>
+          <div class="form-group" style="margin:0"><label>Truck Plate</label><input class="inp" value="${_s(a.truckPlate)}" style="text-transform:uppercase" onchange="S.generatedASNs[${idx}].truckPlate=this.value.toUpperCase()"></div>
+          <div class="form-group" style="margin:0"><label>Personnel</label>
+            <select class="inp" onchange="onPersChange(${idx},this)">
+              <option value="">— Select —</option>
+              ${S.personnelList.map(p=>`<option value="${_s(p.code)}" data-name="${_s(p.name)}" data-contact="${_s(p.contact)}" ${a.personnelCode===p.code?'selected':''}>${_s(p.name)}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-group" style="margin:0"><label>Exp. Delivery</label><input type="date" class="inp" value="${_s(a.expectedDelivery)}" onchange="S.generatedASNs[${idx}].expectedDelivery=this.value"></div>
+        </div>
+      </div>
+    </div>`;
+  });
+}
+function autoETA(idx){
+  const a=S.generatedASNs[idx];
+  const eta=calcETA(a.releasedDate,a.route);
+  if(eta){a.expectedDelivery=eta;renderReviewCards();}
+}
+function onPersChange(idx,sel){
+  const opt=sel.options[sel.selectedIndex];
+  S.generatedASNs[idx].personnelCode=sel.value;
+  S.generatedASNs[idx].personnelName=opt.dataset.name||'';
+  S.generatedASNs[idx].personnelContact=opt.dataset.contact||'';
+}
+function applyBulk(){
+  const released=document.getElementById('bulk-released').value;
+  const truck=document.getElementById('bulk-truck').value.toUpperCase();
+  const persEl=document.getElementById('bulk-personnel');
+  const persOpt=persEl.options[persEl.selectedIndex];
+  const persCode=persEl.value;const persName=persOpt?.dataset?.name||'';const persContact=persOpt?.dataset?.contact||'';
+  const eta=document.getElementById('bulk-eta').value;
+  S.generatedASNs.forEach(a=>{
+    if(released)a.releasedDate=released;
+    if(truck)a.truckPlate=truck;
+    if(persCode){a.personnelCode=persCode;a.personnelName=persName;a.personnelContact=persContact;}
+    if(eta)a.expectedDelivery=eta;
+    else if(released)a.expectedDelivery=calcETA(released,a.route)||a.expectedDelivery;
+  });
+  renderReviewCards();toast('Applied to all ASNs.','ok');
+}
+function applyBulkETA(){
+  const released=document.getElementById('bulk-released').value;
+  if(!released)return;
+  S.generatedASNs.forEach(a=>{const eta=calcETA(released,a.route);if(eta)a.expectedDelivery=eta;});
+}
+async function showPublishConfirm(){
+  const missing=S.generatedASNs.filter(a=>!a.releasedDate||!a.personnelCode||!a.truckPlate);
+  if(missing.length){
+    modal('Incomplete ASNs',`${missing.length} ASN(s) are missing Released Date, Personnel, or Truck Plate. Fix them before publishing.`,[{label:'OK',cls:'btn-gold',action:()=>{}}]);
+    return;
+  }
+  const dup=await srv('detectDuplicateASNs',S.generatedASNs[0]?.controlNumber,S.generatedASNs[0]?.releasedDate);
+  if(dup.ok&&dup.duplicates.length){
+    modal('Duplicates found',`${dup.duplicates.length} ASN(s) with the same control number and release date already exist. Continue anyway?`,[
+      {label:'Cancel',cls:'btn-ghost',action:()=>{}},
+      {label:'Publish Anyway',cls:'btn-danger',action:doPublish}
+    ]);
+    return;
+  }
+  modal('Publish ASNs?',`Publish ${S.generatedASNs.length} ASNs to Firestore?`,[
+    {label:'Cancel',cls:'btn-ghost',action:()=>{}},
+    {label:'Publish',cls:'btn-gold',action:doPublish}
+  ]);
+}
+async function doPublish(){
+  spin('Publishing…');
+  const batch=S.generatedASNs.map(a=>({
+    ...a,ASN_ID:a.ASN_ID||_fbId('ASN'),Status:'Pending',
+    Personnel_Code:a.personnelCode,Personnel_Name:a.personnelName,Personnel_Contact:a.personnelContact,
+    Truck_Plate:a.truckPlate,Released_Date:a.releasedDate,Expected_Delivery:a.expectedDelivery,
+    Route:a.route,Control_No:a.controlNumber,Cust_Code:a.customerCode,Cust_Name:a.customerName,
+    Cust_Address:a.customerAddress,Created_At:_fbNow(),
+    lines:a.lines.map(l=>({...l,ASN_ID:a.ASN_ID,SI_No:l.siNumber,SO_No:l.soNumber,Item_Code:l.itemCode,Item_Name:l.itemName,Qty:l.quantity,UOM:l.uom,Line_Total:l.lineTotal}))
+  }));
+  const r=await srv('publishBatch',batch);
+  unspin();
+  if(r.ok){toast('Published successfully!','ok');show('v-dispatch');switchTab('manage');}
+  else toast('Error: '+(r.err||'Publish failed'),'err');
+}
+async function loadASNList(){
+  spin('Loading ASNs…');
+  try{const r=await srv('getASNList');if(r.ok){S.asnList=r.list||[];renderASNTable();}else toast('Load failed: '+(r.err||''),'err');}
+  catch(e){toast('Error: '+e.message,'err');}
+  unspin();
+}
+function renderASNTable(){
+  const status=document.getElementById('filter-status').value;
+  const search=document.getElementById('filter-search').value.toLowerCase();
+  const data=(S.asnList||[]).filter(a=>(!status||_s(a.Status)===status)&&(!search||_s(a.Cust_Name).toLowerCase().includes(search)));
+  const tbody=document.getElementById('asn-table-body');
+  if(!data.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--tx3);padding:28px">No records found.</td></tr>';return;}
+  tbody.innerHTML=data.map(a=>{
+    const missingPers=!_s(a.Personnel_Code).trim();
+    const missingDate=!_s(a.Released_Date).trim();
+    const needsRepair=missingPers||missingDate;
+    return`<tr ${needsRepair?'style="background:#FEF2F2"':''}>
+      <td class="mono" style="font-size:11px">${_s(a.ASN_ID)}</td>
+      <td><div style="font-weight:600">${_s(a.Cust_Name)}</div><div style="font-size:11px;color:var(--tx3)">${_s(a.Cust_Code)}</div></td>
+      <td>${_s(a.Route)||'—'}</td>
+      <td>${missingDate?'<span style="color:var(--danger);font-size:11px">&#x26A0; Missing</span>':fmtDate(a.Released_Date)}</td>
+      <td>${fmtDate(a.Expected_Delivery)}</td>
+      <td>${missingPers?'<span style="color:var(--danger);font-size:11px">&#x26A0; Missing</span>':_s(a.Personnel_Name)}</td>
+      <td>${badge(_s(a.Status))}</td>
+      <td><div style="display:flex;gap:5px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="viewASNDetail('${_s(a.ASN_ID)}')">View</button>
+        ${needsRepair?`<button class="btn btn-sm" style="background:var(--amber-lt);color:#92400E;font-weight:700" onclick="assignPersonnelModal('${_s(a.ASN_ID)}')">&#x26A0; Assign</button>`:''}
+        ${_s(a.Status)==='Pending'&&!needsRepair?`<button class="btn btn-ghost btn-sm" onclick="setStatusPrompt('${_s(a.ASN_ID)}','Released')">&#x2192; Transit</button>`:''}
+        ${!['Delivered','Voided'].includes(_s(a.Status))?`<button class="btn btn-sm" style="background:var(--danger-lt);color:var(--danger)" onclick="voidPrompt('${_s(a.ASN_ID)}')">Void</button>`:''}
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+async function viewASNDetail(id){
+  spin('Loading…');
+  const r=await srv('getASNDetail',id);
+  unspin();
+  if(!r.ok){toast('Error loading ASN','err');return;}
+  document.getElementById('detail-asn-id').textContent=id;
+  renderASNDetail(r);
+  show('v-asn-detail');
+}
+function renderASNDetail(r){
+  const{asn,lines,tags}=r;
+  const tagMap={};tags.forEach(t=>{tagMap[_s(t.SI_No)]=t;});
+  const siGroups={};
+  lines.forEach(l=>{const si=_s(l.SI_No||l.siNumber);if(!siGroups[si])siGroups[si]={soNo:_s(l.SO_No||l.soNumber),siNo:si,items:[]};siGroups[si].items.push(l);});
+  document.getElementById('asn-detail-body').innerHTML=`
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-hd" style="justify-content:space-between"><h3>${_s(asn.Cust_Name)}</h3>${badge(_s(asn.Status))}</div>
+      <div class="card-body">
+        <div class="grid-2">
+          <div>
+            <div class="info-row"><span class="lbl">Customer Code</span><span class="val mono">${_s(asn.Cust_Code)}</span></div>
+            <div class="info-row"><span class="lbl">Route</span><span class="val">${_s(asn.Route)||'—'}</span></div>
+            <div class="info-row"><span class="lbl">Control No.</span><span class="val mono">${_s(asn.Control_No)||'—'}</span></div>
+            <div class="info-row"><span class="lbl">Released Date</span><span class="val">${fmtDate(asn.Released_Date)}</span></div>
+          </div>
+          <div>
+            <div class="info-row"><span class="lbl">Expected Delivery</span><span class="val">${fmtDate(asn.Expected_Delivery)}</span></div>
+            <div class="info-row"><span class="lbl">Truck Plate</span><span class="val">${_s(asn.Truck_Plate)||'—'}</span></div>
+            <div class="info-row"><span class="lbl">Personnel</span><span class="val">${_s(asn.Personnel_Name)||'—'}</span></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+          ${_s(asn.Status)!=='Voided'?`<button class="btn btn-ghost btn-sm dispatch-only" onclick="assignPersonnelModal('${_s(asn.ASN_ID||asn.id)}')">&#x270F; Edit Assignment</button>`:''}
+          ${!['Delivered','Voided'].includes(_s(asn.Status))?`<button class="btn btn-sm dispatch-only" style="background:var(--danger-lt);color:var(--danger)" onclick="voidPrompt('${_s(asn.ASN_ID||asn.id)}')">Void ASN</button>`:''}
+        </div>
+      </div>
+    </div>
+    ${Object.values(siGroups).map(sg=>{
+      const tag=tagMap[sg.siNo];
+      return`<div class="card" style="margin-bottom:10px">
+        <div class="card-hd" style="justify-content:space-between">
+          <div><div class="mono" style="font-size:12px">SI: ${sg.siNo}</div><div style="font-size:11px;color:var(--tx3)">SO: ${sg.soNo}</div></div>
+          ${badge(tag?_s(tag.Del_Status):'Pending')}
+        </div>
+        <div class="card-body">
+          <div class="tbl-wrap" style="margin-bottom:${tag?'10px':'0'}">
+            <table><thead><tr><th>Item Code</th><th>Description</th><th>Qty</th><th>UOM</th><th>Line Total</th></tr></thead>
+            <tbody>${sg.items.map(i=>`<tr><td class="mono" style="font-size:11px">${_s(i.Item_Code||i.itemCode)}</td><td>${_s(i.Item_Name||i.itemName)}</td><td>${_s(i.Qty||i.quantity)}</td><td>${_s(i.UOM||i.uom)}</td><td>${peso(i.Line_Total||i.lineTotal)}</td></tr>`).join('')}</tbody>
+            </table>
+          </div>
+          ${tag?`<div style="background:var(--green-lt);border-radius:var(--r-xs);padding:9px 12px;font-size:12px"><strong>${_s(tag.Del_Status)}</strong> &middot; Recipient: ${_s(tag.Recipient)} &middot; ${fmt(tag.Tagged_At||tag.Deliv_TS)}</div>`:''}
+        </div>
+      </div>`;
+    }).join('')}`;
+}
+function setStatusPrompt(id,status){
+  modal(`Set to ${status}?`,`Mark ASN ${id} as ${status}?`,[
+    {label:'Cancel',cls:'btn-ghost',action:()=>{}},
+    {label:status,cls:'btn-gold',action:async()=>{spin();const r=await srv('setStatus',id,status);unspin();if(r.ok){toast('Status updated.','ok');loadASNList();}else toast('Error','err');}}
+  ]);
+}
+function voidPrompt(id){
+  modal('Void ASN?',`This will void ASN ${id}. Enter reason:`,[
+    {label:'Cancel',cls:'btn-ghost',action:()=>{}},
+    {label:'Void',cls:'btn-danger',action:async()=>{const reason=document.getElementById('modal-input').value.trim()||'No reason provided';spin();const r=await srv('voidASN',id,reason);unspin();if(r.ok){toast('ASN voided.','ok');loadASNList();}else toast('Error','err');}}
+  ],{label:'Reason',value:''});
+}
+function assignPersonnelModal(asnId){
+  const persOpts=S.personnelList.map(p=>`<option value="${_s(p.code)}" data-name="${_s(p.name)}" data-contact="${_s(p.contact)}">${_s(p.name)} (${_s(p.code)})</option>`).join('');
+  modal('Assign Personnel','',[
+    {label:'Cancel',cls:'btn-ghost',action:()=>{}},
+    {label:'Save',cls:'btn-gold',action:async()=>{
+      const persCode=document.getElementById('assign-pers-sel').value;
+      const released=document.getElementById('assign-released').value;
+      const truck=document.getElementById('assign-truck').value.toUpperCase();
+      if(!persCode||!released){toast('Personnel and released date required.','warn');return;}
+      if(truck){await srv('setStatus',asnId,'Pending');}
+      spin();
+      const r=await srv('assignPersonnelToASN',asnId,persCode,released);
+      if(truck)await _db.collection('asns').doc(asnId).update({Truck_Plate:truck});
+      unspin();
+      if(r.ok){toast('Assignment saved.','ok');loadASNList();}else toast(r.msg||'Error','err');
+    }}
+  ],null,`<div style="margin-bottom:12px">
+    <div class="form-group"><label style="font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase">Released Date</label><input type="date" id="assign-released" class="inp" value="${today()}"></div>
+    <div class="form-group"><label style="font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase">Truck Plate</label><input id="assign-truck" class="inp" placeholder="CEQ 123" style="text-transform:uppercase"></div>
+    <div class="form-group"><label style="font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase">Personnel</label><select id="assign-pers-sel" class="inp"><option value="">— Select —</option>${persOpts}</select></div>
+  </div>`);
+}
+async function loadTracker(){
+  try{
+    const r=await srv('getLiveTracker');
+    if(!r.ok){toast('Tracker error: '+r.err,'err');return;}
+    document.getElementById('tracker-asof').textContent='As of '+fmt(r.asOf);
+    renderTrackerData(r.tracker,'tracker-body');
+  }catch(e){console.error(e);}
+}
+function renderTrackerData(tracker,bodyId){
+  const body=document.getElementById(bodyId);
+  if(!tracker||!tracker.length){body.innerHTML='<p class="text-muted" style="text-align:center;padding:40px">No active runs.</p>';return;}
+  body.innerHTML=tracker.map(p=>{
+    const pct=p.total?Math.round(p.done/p.total*100):0;
+    return`<div class="tracker-card">
+      <div class="tracker-hd">
+        <div>
+          <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:13px">&#x1F69A; ${_s(p.name)} <span class="chip">${_s(p.code)||'—'}</span></div>
+          <div style="font-size:11px;color:var(--tx3)">${_s(p.route)||'—'} &middot; ${p.done}/${p.total} stops</div>
+        </div>
+        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:800;color:${pct===100?'var(--green)':pct>50?'var(--amber)':'var(--tx)'}">${pct}%</div>
+      </div>
+      <div class="progress-bar" style="margin:0 14px 14px"><div class="progress-fill" style="width:${pct}%;background:${pct===100?'var(--green)':pct>50?'var(--amber)':'var(--info)'}"></div></div>
+    </div>`;
+  }).join('');
+}
+async function loadSalesTracker(){
+  try{
+    const r=await srv('getLiveTracker');
+    if(!r.ok)return;
+    renderTrackerData(r.tracker,'sales-tracker-body');
+  }catch(e){console.error(e);}
+}
+function startTrackerPoll(){
+  clearInterval(S._trackerPoll);
+  S._trackerPoll=setInterval(()=>{if(document.getElementById('tab-tracker')?.classList.contains('active'))loadTracker();},60000);
+}
+async function loadPersonnelRunFromSelect(){
+  const sel=document.getElementById('pers-control-select');
+  const idx=sel.value;
+  if(idx===''){toast('Select a run.','warn');return;}
+  const pair=S.personnelControlPairs[Number(idx)];
+  if(!pair){toast('Invalid selection.','warn');return;}
+  await loadPersonnelRun(pair.controlNo,pair.releasedDate);
+}
+async function loadPersonnelRun(controlNo,releasedDate){
+  spin('Loading your run…');
+  try{
+    const r=await srv('getPersonnelRun',S.personnelInfo.code,controlNo,releasedDate);
+    if(!r.ok){toast('Error: '+r.err,'err');unspin();return;}
+    const body=document.getElementById('personnel-run-body');
+    if(!r.run||!r.run.length){
+      document.getElementById('start-run-wrap').style.display='none';
+      body.innerHTML='<div style="text-align:center;padding:60px 20px"><div style="font-size:44px;margin-bottom:14px">&#x2705;</div><p class="jakarta" style="font-size:17px;font-weight:700">No deliveries for this run</p></div>';
+      unspin();return;
+    }
+    S.currentRun=r.run;
+    const totalStops=r.run.length;
+    const doneStops=r.run.filter(s=>s.allTagged).length;
+    document.getElementById('pers-name-bar').textContent=S.personnelInfo.name||'Delivery';
+    document.getElementById('pers-run-date').textContent=fmtDate(releasedDate);
+    document.getElementById('pers-progress-text').textContent=`${doneStops}/${totalStops}`;
+    document.getElementById('pers-progress-fill').style.width=totalStops?`${Math.round(doneStops/totalStops*100)}%`:'0%';
+    const hasPending=r.run.some(stop=>!stop.allTagged);
+    document.getElementById('start-run-wrap').style.display=hasPending&&doneStops===0?'block':'none';
+    body.innerHTML=r.run.map((stop,si)=>`
+      <div class="stop-card">
+        <div class="stop-card-hd" onclick="this.parentElement.querySelector('.si-list').style.display=this.parentElement.querySelector('.si-list').style.display==='none'?'block':'none'">
+          <div class="stop-num ${stop.allTagged?'done':''}">${_s(stop.stopNo)||'—'}</div>
+          <div style="flex:1">
+            <div style="font-weight:700;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif">${_s(stop.custName)}</div>
+            <div style="font-size:11px;color:var(--tx3)">${stop.salesInvoices.length} invoice(s) &middot; ${stop.allTagged?'<span style="color:var(--green);font-weight:600">All tagged &#x2713;</span>':stop.partialTagged?'<span style="color:var(--amber)">Partially tagged</span>':'Pending'}</div>
+          </div>
+        </div>
+        <div class="si-list" style="display:none">
+          ${stop.salesInvoices.map((inv,ii)=>`
+            <div class="si-row ${inv.tagged?'tagged':''}" onclick="${inv.tagged?'':'openTag('+si+','+ii+')'}">
+              <div style="flex:1"><div class="mono" style="font-size:12px">SI: ${_s(inv.siNo)}</div><div style="font-size:11px;color:var(--tx3)">SO: ${_s(inv.soNo)} &middot; ${inv.items.length} items</div></div>
+              ${inv.tagged?badge('Delivered'):'<span style="font-size:11px;color:var(--gold-dk);font-weight:600">Tag &rarr;</span>'}
+            </div>`).join('')}
+        </div>
+      </div>`).join('');
+    show('v-personnel-run');
+  }catch(e){toast('Error: '+e.message,'err');}
+  unspin();
+}
+async function startDeliveryRun(){
+  spin('Setting all to Released…');
+  const r=await srv('setRunReleased',S.personnelInfo.code);
+  unspin();
+  if(r.ok){toast('Run started! '+r.count+' ASNs set to Released.','ok');document.getElementById('start-run-wrap').style.display='none';}
+  else toast('Error','err');
+}
+function openTag(stopIdx,siIdx){
+  const stop=S.currentRun[stopIdx];
+  const inv=stop.salesInvoices[siIdx];
+  S._tagCtx={stopIdx,siIdx,asnId:stop.asnId,siNo:inv.siNo,soNo:inv.soNo};
+  document.getElementById('tag-cust-name').textContent=stop.custName;
+  document.getElementById('tag-si-no').textContent=inv.siNo;
+  document.getElementById('tag-si-no2').textContent=inv.siNo;
+  document.getElementById('tag-so-no').textContent=inv.soNo;
+  document.getElementById('tag-instr').textContent=inv.delivInstr||'—';
+  document.getElementById('tag-recv').textContent=inv.recvFrom&&inv.recvTo?inv.recvFrom+' – '+inv.recvTo:'—';
+  document.getElementById('tag-mop').textContent=inv.mop||'—';
+  document.getElementById('tag-items-list').innerHTML=inv.items.map(i=>`<div style="display:flex;justify-content:space-between;padding:7px 10px;background:var(--surface2);border-radius:var(--r-xs);margin-bottom:5px;font-size:12px"><span>${_s(i.Item_Name||i.itemName)}</span><span class="mono">${_s(i.Qty||i.quantity)} ${_s(i.UOM||i.uom)}</span></div>`).join('');
+  ['delivered','returned','rescheduled'].forEach(s=>document.getElementById('st-'+s).classList.remove('btn-gold','btn-danger','btn-green'));
+  document.getElementById('reason-group').style.display='none';
+  document.getElementById('tag-reason').value='';
+  document.getElementById('tag-recipient').value='';
+  document.getElementById('pod-preview').classList.remove('show');
+  document.getElementById('photo-status').textContent='';
+  S._tagStatus=null;S._photoData=null;
+  show('v-personnel-tag');
+}
+function setTagStatus(status){
+  S._tagStatus=status;
+  ['delivered','returned','rescheduled'].forEach(s=>{
+    const btn=document.getElementById('st-'+s);
+    btn.classList.remove('btn-gold','btn-danger','btn-green','btn-ghost');
+    btn.classList.add('btn-ghost');
+  });
+  const map={Delivered:'delivered',Returned:'returned',Rescheduled:'rescheduled'};
+  const cls={Delivered:'btn-green',Returned:'btn-danger',Rescheduled:'btn-gold'};
+  document.getElementById('st-'+map[status]).className='btn btn-sm '+cls[status];
+  document.getElementById('reason-group').style.display=status!=='Delivered'?'block':'none';
+}
+async function onPhotoSelected(input){
+  const file=input.files[0];if(!file)return;
+  try{
+    const compressed=await compressImage(file);
+    S._photoData=compressed;
+    const url=URL.createObjectURL(file);
+    const img=document.getElementById('pod-preview');img.src=url;img.classList.add('show');
+    document.getElementById('photo-status').textContent='Photo ready.';
+  }catch(e){document.getElementById('photo-status').textContent='Error: '+e.message;}
+}
+function compressImage(file,maxW=800,quality=0.72){
+  return new Promise((res,rej)=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const img=new Image();
+      img.onload=()=>{
+        const scale=Math.min(1,maxW/img.width);
+        const canvas=document.createElement('canvas');
+        canvas.width=img.width*scale;canvas.height=img.height*scale;
+        canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+        canvas.toBlob(b=>{if(b)res(b);else rej(new Error('Compression failed'));},file.type||'image/jpeg',quality);
+      };
+      img.onerror=rej;img.src=e.target.result;
+    };
+    reader.onerror=rej;reader.readAsDataURL(file);
+  });
+}
+async function submitTag(){
+  if(!S._tagStatus){toast('Select a delivery status.','warn');return;}
+  const reason=document.getElementById('tag-reason').value.trim();
+  if(S._tagStatus!=='Delivered'&&!reason){toast('Reason is required.','warn');return;}
+  const recipient=document.getElementById('tag-recipient').value.trim();
+  spin('Submitting…');
+  try{
+    let photoUrl='';
+    if(S._photoData){
+      try{
+        const res=await srv('uploadPhoto',S._photoData,S._tagCtx.asnId,S._tagCtx.siNo);
+        if(res&&res.url)photoUrl=res.url;
+      }catch(e){console.error('Photo upload failed:',e);}
+    }
+    const tag={ASN_ID:S._tagCtx.asnId,SI_No:S._tagCtx.siNo,SO_No:S._tagCtx.soNo,
+      Del_Status:S._tagStatus,Reason:reason,Recipient:recipient,Photo_URL:photoUrl,
+      Personnel_Code:S.personnelInfo.code,Personnel_Name:S.personnelInfo.name,Deliv_TS:_fbNow()};
+    const r=await srv('saveTag',tag);
+    unspin();
+    if(r.ok){
+      toast('Tagged: '+S._tagStatus,'ok');
+      S.currentRun[S._tagCtx.stopIdx].salesInvoices[S._tagCtx.siIdx].tagged=true;
+      await loadPersonnelRun(S.currentRun[0].route,S.currentRun[0].releasedDate||today());
+    }else toast('Error: '+(r.err||'Save failed'),'err');
+  }catch(e){toast('Error: '+e.message,'err');unspin();}
+}
+async function loadSalesData(){
+  spin('Loading…');
+  try{const r=await srv('getASNList');if(r.ok){S.asnList=r.list||[];renderSalesASNTable();}else toast('Load failed','err');}
+  catch(e){toast('Error: '+e.message,'err');}
+  unspin();
+}
+function renderSalesASNTable(){
+  const status=document.getElementById('sales-filter-status').value;
+  const search=document.getElementById('sales-filter-search').value.toLowerCase();
+  const data=(S.asnList||[]).filter(a=>(!status||_s(a.Status)===status)&&(!search||_s(a.Cust_Name).toLowerCase().includes(search)));
+  const tbody=document.getElementById('sales-asn-body');
+  if(!data.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--tx3);padding:28px">No records found.</td></tr>';return;}
+  tbody.innerHTML=data.map(a=>`<tr>
+    <td class="mono" style="font-size:11px">${_s(a.ASN_ID)}</td>
+    <td><div style="font-weight:600">${_s(a.Cust_Name)}</div><div style="font-size:11px;color:var(--tx3)">${_s(a.Cust_Code)}</div></td>
+    <td>${_s(a.Route)||'—'}</td>
+    <td>${fmtDate(a.Released_Date)}</td>
+    <td>${fmtDate(a.Expected_Delivery)}</td>
+    <td>${_s(a.Personnel_Name)||'—'}</td>
+    <td>${badge(_s(a.Status))}</td>
+  </tr>`).join('');
+}
+async function doCustomerLogin(){
+  const code=document.getElementById('cust-code-inp').value.trim().toUpperCase();
+  if(!code){toast('Enter your customer code.','warn');return;}
+  spin('Looking up…');
+  try{
+    const r=await srv('loginCustomer',code);
+    unspin();
+    if(!r.ok){toast('Customer code not found.','err');return;}
+    S.customerCode=code;
+    document.getElementById('cust-select-name').textContent='Hello, '+_s(r.name)+'!';
+    const sel=document.getElementById('cust-control-select');
+    sel.innerHTML='<option value="">— Select a shipment —</option>';
+    (r.pairs||[]).forEach((p,i)=>{sel.innerHTML+=`<option value="${i}">${_s(p.label)}</option>`;});
+    show('v-customer-select');
+  }catch(e){toast('Error: '+e.message,'err');unspin();}
+}
+async function loadCustomerOrdersFromSelect(){
+  const sel=document.getElementById('cust-control-select');
+  const idx=sel.value;
+  if(idx===''){toast('Select a shipment.','warn');return;}
+  const pair=(await srv('loginCustomer',S.customerCode)).pairs[Number(idx)];
+  if(!pair){toast('Invalid selection.','warn');return;}
+  await loadCustomerASNs(pair.controlNo,pair.releasedDate);
+}
+async function loadCustomerASNs(controlNo,releasedDate){
+  spin('Loading orders…');
+  try{
+    const r=await srv('getCustomerASNs',S.customerCode,controlNo,releasedDate);
+    unspin();
+    if(!r.ok){toast('Error loading orders.','err');return;}
+    S._customerASNs=r.asns;S._customerControl=controlNo;
+    document.getElementById('cust-name-bar').textContent=r.asns[0]?.Cust_Name||S.customerCode;
+    document.getElementById('cust-code-bar').textContent=S.customerCode;
+    renderCustomerASNs(r.asns);
+    show('v-customer-asns');
+  }catch(e){toast('Error: '+e.message,'err');unspin();}
+}
+function renderCustomerASNs(asns){
+  const body=document.getElementById('customer-asns-body');
+  if(!asns||!asns.length){body.innerHTML='<p class="text-muted" style="text-align:center;padding:40px">No orders found.</p>';return;}
+  body.innerHTML=asns.map(asn=>{
+    const tagMap={};(asn.tags||[]).forEach(t=>{tagMap[t.SI_No]=t;});
+    const siGroups={};
+    (asn.lines||[]).forEach(l=>{const si=_s(l.SI_No||l.siNumber);if(!siGroups[si])siGroups[si]={siNo:si,soNo:_s(l.SO_No||l.soNumber),items:[]};siGroups[si].items.push(l);});
+    const total=(asn.lines||[]).reduce((s,l)=>s+(Number(l.Line_Total||l.lineTotal)||0),0);
+    return`<div class="card" style="margin-bottom:14px">
+      <div class="card-hd" style="justify-content:space-between">
+        <div><div style="font-weight:700">${_s(asn.Cust_Name)}</div><div style="font-size:11px;color:var(--tx3)">${_s(asn.Route)||'—'} &middot; ${fmtDate(asn.Expected_Delivery)}</div></div>
+        ${badge(_s(asn.Status))}
+      </div>
+      <div class="card-body">
+        <div class="info-row"><span class="lbl">Truck</span><span class="val">${_s(asn.Truck_Plate)||'—'}</span></div>
+        <div class="info-row"><span class="lbl">Released</span><span class="val">${fmtDate(asn.Released_Date)}</span></div>
+        <div class="info-row"><span class="lbl">Total Value</span><span class="val">${peso(total)}</span></div>
+        <hr class="divider">
+        ${Object.values(siGroups).map(sg=>{
+          const tag=tagMap[sg.siNo];
+          return`<div style="margin-bottom:10px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+              <span class="mono" style="font-size:12px">SI: ${sg.siNo} | SO: ${sg.soNo}</span>
+              ${badge(tag?_s(tag.Del_Status):'Pending')}
+            </div>
+            ${tag?`<div style="font-size:11px;color:var(--tx2);background:var(--surface2);padding:7px 10px;border-radius:var(--r-xs)">Recipient: ${_s(tag.Recipient)||'—'} &middot; ${fmt(tag.Tagged_At||tag.Deliv_TS)}</div>`:''}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+async function exportCurrentCustomerASN(){
+  if(!S._customerASNs)return;
+  const wb=XLSX.utils.book_new();
+  const rows=[];
+  S._customerASNs.forEach(asn=>{
+    (asn.lines||[]).forEach(l=>{
+      rows.push({'ASN ID':asn.ASN_ID||asn.id,'Customer':asn.Cust_Name,'Route':asn.Route,'Status':asn.Status,'Released Date':asn.Released_Date,'Expected Delivery':asn.Expected_Delivery,'SI No':l.SI_No||l.siNumber,'SO No':l.SO_No||l.soNumber,'Item Code':l.Item_Code||l.itemCode,'Description':l.Item_Name||l.itemName,'Qty':l.Qty||l.quantity,'UOM':l.UOM||l.uom,'Line Total':l.Line_Total||l.lineTotal});
+    });
+  });
+  const ws=rows.length?XLSX.utils.json_to_sheet(rows):XLSX.utils.aoa_to_sheet([['No data']]);
+  XLSX.utils.book_append_sheet(wb,ws,'Orders');
+  XLSX.writeFile(wb,`GMPI_Orders_${S.customerCode}_${today()}.xlsx`);
+}
+async function loadReportControls(){
+  spin();const r=await srv('getRunControlNumbers');unspin();
+  if(!r.ok)return;
+  const sel=document.getElementById('rpt-control-sel');
+  sel.innerHTML='<option value="">— Select a run —</option>';
+  (r.pairs||[]).forEach((p,i)=>{sel.innerHTML+=`<option value="${i}" data-ctrl="${_s(p.controlNo)}" data-date="${_s(p.releasedDate)}">${_s(p.label)}</option>`;});
+  S._reportPairs=r.pairs||[];
+}
+async function loadRunReport(){
+  const sel=document.getElementById('rpt-control-sel');
+  const idx=sel.value;
+  const dateInp=document.getElementById('rpt-date-inp').value;
+  if(idx===''){toast('Select a run.','warn');return;}
+  const pair=S._reportPairs[Number(idx)];
+  if(!pair){toast('Invalid selection.','warn');return;}
+  const relDate=dateInp||pair.releasedDate;
+  spin('Generating report…');
+  const r=await srv('getRunReport',pair.controlNo,relDate);
+  unspin();
+  if(!r.ok){toast('Error: '+(r.err||'Failed'),'err');return;}
+  S._lastReport=r;
+  renderRunReport(r.summary,r.customers);
+}
+function renderRunReport(sum,customers){
+  const body=document.getElementById('rpt-body');
+  const pct=sum.completionRate||0;
+  body.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <h3 class="jakarta" style="font-size:15px;font-weight:800">Run Summary</h3>
+      <button class="btn btn-gold btn-sm" onclick="exportRunReport()">&#x2B07; Export Excel</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:24px">
+      ${[
+        {l:'Route',v:_s(sum.route)},{l:'Control No.',v:_s(sum.controlNo),mono:true},
+        {l:'Released',v:fmtDate(sum.releasedDate)},{l:'Personnel',v:_s(sum.personnelName)||'—'},
+        {l:'Truck',v:_s(sum.truckPlate)||'—'},{l:'Customers',v:sum.totalCustomers,big:true},
+        {l:'Invoices',v:sum.totalSIs,big:true},{l:'Total Value',v:peso(sum.totalValue),big:true},
+        {l:'Delivered',v:sum.delivered,big:true,color:'var(--green)'},{l:'Returned',v:sum.returned,big:true,color:'var(--danger)'},
+        {l:'Rescheduled',v:sum.rescheduled,big:true,color:'var(--amber)'},{l:'Pending',v:sum.pending,big:true,color:'var(--tx3)'},
+        {l:'Completion',v:pct+'%',big:true,color:pct===100?'var(--green)':pct>50?'var(--amber)':'var(--danger)'}
+      ].map(k=>`<div class="stat"><div class="stat-val" style="${k.color?'color:'+k.color:''};font-size:${k.big?'22px':'14px'}">${k.v}</div><div class="stat-lbl">${k.l}</div></div>`).join('')}
+    </div>
+    ${customers.map(c=>`<div class="card" style="margin-bottom:10px">
+      <div class="card-hd" style="justify-content:space-between">
+        <div><div style="font-weight:700">${_s(c.custName)}</div><div style="font-size:11px;color:var(--tx3)">${_s(c.custCode)} &middot; ${peso(c.total)}</div></div>
+        ${badge(_s(c.status))}
+      </div>
+    </div>`).join('')}`;
+}
+function exportRunReport(){
+  if(!S._lastReport)return;
+  const{summary:sum,customers}=S._lastReport;
+  const wb=XLSX.utils.book_new();
+  const summaryRows=[['Route',sum.route],['Control No.',sum.controlNo],['Released Date',sum.releasedDate],['Personnel',sum.personnelName],['Truck Plate',sum.truckPlate],['Total Customers',sum.totalCustomers],['Total Value',sum.totalValue],['Delivered',sum.delivered],['Returned',sum.returned],['Rescheduled',sum.rescheduled],['Pending',sum.pending],['Completion Rate',sum.completionRate+'%']];
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(summaryRows),'Summary');
+  const detailRows=[];
+  customers.forEach(c=>{c.siGroups.forEach(sg=>{sg.items.forEach(i=>{detailRows.push({Customer:c.custName,'Cust Code':c.custCode,Status:c.status,'SI No':sg.siNo,'SO No':sg.soNo,'Item Code':i.Item_Code||i.itemCode,'Description':i.Item_Name||i.itemName,'Qty':i.Qty||i.quantity,'UOM':i.UOM||i.uom,'Line Total':i.Line_Total||i.lineTotal});});});});
+  if(detailRows.length)XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(detailRows),'Detail');
+  XLSX.writeFile(wb,`GMPI_Report_${sum.controlNo}_${sum.releasedDate}.xlsx`);
+}
+async function loadDuplicates(){
+  spin();const r=await srv('getDuplicateASNs');unspin();
+  const body=document.getElementById('dupes-body');
+  if(!r.ok){toast('Error','err');return;}
+  if(!r.groups||!r.groups.length){body.innerHTML='<div class="ok-box">&#x2705; No duplicates found.</div>';return;}
+  body.innerHTML=r.groups.map((g,gi)=>`
+    <div class="card" style="margin-bottom:10px">
+      <div class="card-hd" style="justify-content:space-between">
+        <h3>${_s(g.key)}</h3>
+        <button class="btn btn-danger btn-sm" onclick="voidSelectedDupes(${gi},${g.asns.length-1})">Void ${g.asns.length-1} dupes</button>
+      </div>
+      <div class="card-body">
+        ${g.asns.map((a,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:12px;border-bottom:1px solid var(--border-lt)">
+          <span class="mono" style="font-size:11px">${_s(a.ASN_ID||a.id)}</span>
+          <span>${_s(a.Cust_Name)}</span>
+          <span>${badge(_s(a.Status))}</span>
+          ${i>0?`<button class="btn btn-sm" style="background:var(--danger-lt);color:var(--danger)" onclick="voidPrompt('${_s(a.ASN_ID||a.id)}')">Void</button>`:'<span class="chip">Keep</span>'}
+        </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+async function voidSelectedDupes(gi,count){
+  const group=S._dupeGroups?.[gi];if(!group)return;
+  const toVoid=group.asns.slice(1).map(a=>a.ASN_ID||a.id);
+  modal(`Void ${count} duplicate(s)?`,`Keep the first, void the rest?`,[
+    {label:'Cancel',cls:'btn-ghost',action:()=>{}},
+    {label:'Void Duplicates',cls:'btn-danger',action:async()=>{spin();const r=await srv('bulkVoidASNs',toVoid,'Duplicate');unspin();if(r.ok){toast('Voided.','ok');loadDuplicates();}else toast('Error','err');}}
+  ]);
+}
+window.addEventListener('DOMContentLoaded',function(){
+  firebase.initializeApp({
+    apiKey:"AIzaSyBrYLBg67AxE79WDx6PPWZKRhmZwSynhFc",
+    authDomain:"gmpi-delivery-mgt-system.firebaseapp.com",
+    projectId:"gmpi-delivery-mgt-system",
+    storageBucket:"gmpi-delivery-mgt-system.firebasestorage.app",
+    messagingSenderId:"231556470351",
+    appId:"1:231556470351:web:cfa808bb4c43a2238afc3a"
+  });
+  _db=firebase.firestore();
+  show('v-landing');
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Work Instruction — GMPI ASN Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;font-size:13px;color:#111827;background:#F4F5F8;line-height:1.6}
+h1,h2,h3,h4{font-family:'Plus Jakarta Sans',sans-serif}
+
+/* ── Page ── */
+.page{max-width:860px;margin:0 auto;padding:40px 24px 60px}
+
+/* ── Cover Header ── */
+.cover{background:#0A0705;border-radius:14px;padding:36px 40px;margin-bottom:32px;position:relative;overflow:hidden}
+.cover::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,transparent,#A07820,#C9A84C,#A07820,transparent)}
+.cover-label{font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.14em;margin-bottom:8px}
+.cover-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:26px;font-weight:800;color:#C9A84C;
+  text-transform:uppercase;letter-spacing:.04em;line-height:1.2;margin-bottom:6px}
+.cover-sub{font-size:13px;color:rgba(255,255,255,.55);margin-bottom:20px}
+.cover-meta{display:flex;gap:24px;flex-wrap:wrap}
+.cover-meta-item{font-size:11px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.06em}
+.cover-meta-item span{color:#C9A84C;font-weight:600;display:block;font-size:12px;margin-top:2px;text-transform:none;letter-spacing:0}
+
+/* ── Section ── */
+.section{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.07);margin-bottom:20px;overflow:hidden}
+.section-hd{padding:16px 22px;border-bottom:1px solid #EFF1F5;display:flex;align-items:center;gap:12px}
+.section-hd-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.section-hd h2{font-size:15px;font-weight:700;color:#111827}
+.section-hd p{font-size:11px;color:#9CA3AF;margin-top:2px}
+.section-body{padding:20px 22px}
+
+/* ── Role Badge ── */
+.role-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;
+  font-size:11px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;text-transform:uppercase;letter-spacing:.04em}
+.role-dispatch{background:#FEF0F0;color:#C0181A}
+.role-delivery{background:#FFFBEB;color:#D97706}
+.role-customer{background:#E0F2FE;color:#0284C7}
+
+/* ── Steps ── */
+.steps{display:flex;flex-direction:column;gap:0}
+.step{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid #EFF1F5}
+.step:last-child{border-bottom:none;padding-bottom:0}
+.step-num{width:28px;height:28px;border-radius:50%;background:#C0181A;color:#fff;
+  font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:12px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step-body h4{font-size:13px;font-weight:700;color:#111827;margin-bottom:3px}
+.step-body p{font-size:12px;color:#4B5563;line-height:1.55}
+.step-body .note{font-size:11px;color:#9CA3AF;margin-top:5px;font-style:italic}
+.step-body .tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;
+  font-weight:700;margin-right:4px;margin-top:4px}
+.tag-green{background:#ECFDF5;color:#059669}
+.tag-amber{background:#FFFBEB;color:#D97706}
+.tag-red{background:#FEF2F2;color:#DC2626}
+.tag-blue{background:#E0F2FE;color:#0284C7}
+.tag-gray{background:#F3F4F6;color:#6B7280}
+
+/* ── Flow Diagram ── */
+.flow{display:flex;align-items:center;flex-wrap:wrap;gap:0;margin:14px 0}
+.flow-box{background:#F9FAFB;border:1.5px solid #E4E7EE;border-radius:8px;padding:8px 14px;
+  font-size:11px;font-weight:600;color:#374151;text-align:center;min-width:90px}
+.flow-box.active{background:#FEF0F0;border-color:#C0181A;color:#C0181A}
+.flow-box.done{background:#ECFDF5;border-color:#059669;color:#059669}
+.flow-arrow{font-size:16px;color:#9CA3AF;padding:0 6px;flex-shrink:0}
+
+/* ── Table ── */
+.wi-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px}
+.wi-table th{background:#F9FAFB;padding:9px 12px;text-align:left;font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;border-bottom:2px solid #E4E7EE}
+.wi-table td{padding:10px 12px;border-bottom:1px solid #EFF1F5;vertical-align:top;color:#374151}
+.wi-table tr:last-child td{border-bottom:none}
+
+/* ── Info Box ── */
+.info-box{background:#FBF5E6;border:1px solid #C9A84C;border-radius:8px;padding:12px 16px;
+  font-size:12px;color:#374151;margin:12px 0}
+.info-box strong{color:#A07820}
+.warn-box{background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:12px 16px;
+  font-size:12px;color:#374151;margin:12px 0}
+.warn-box strong{color:#DC2626}
+
+/* ── Divider ── */
+.divider{height:1px;background:#E4E7EE;margin:18px 0}
+
+/* ── Print ── */
+@media print{
+  body{background:#fff}
+  .page{padding:20px}
+  .cover{border-radius:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .section{box-shadow:none;border:1px solid #E4E7EE}
+  .section{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- COVER -->
+  <div class="cover">
+    <div class="cover-label">Work Instruction · Document No. WI-ASN-001</div>
+    <div class="cover-title">GMPI ASN Portal</div>
+    <div class="cover-sub">Advance Shipping Notice Portal — User Work Instruction</div>
+    <div class="cover-meta">
+      <div class="cover-meta-item">Prepared by<span>Inventory &amp; Logistics Division</span></div>
+      <div class="cover-meta-item">Version<span>v4.0 (V6 Build)</span></div>
+      <div class="cover-meta-item">Date<span>May 2026</span></div>
+      <div class="cover-meta-item">Classification<span>Internal Use Only</span></div>
+    </div>
+  </div>
+
+  <!-- 1. PURPOSE -->
+  <div class="section">
+    <div class="section-hd">
+      <div class="section-hd-icon" style="background:#FEF0F0">📌</div>
+      <div><h2>1. Purpose</h2><p>What this system is for</p></div>
+    </div>
+    <div class="section-body">
+      <p style="color:#374151;line-height:1.7">
+        The <strong>GMPI ASN Portal</strong> is a web-based delivery management system used to create, track, and confirm
+        Advance Shipping Notices (ASNs) for outbound deliveries. It connects three key parties — the
+        <strong>Dispatch team</strong>, the <strong>Delivery personnel</strong>, and the <strong>Customer</strong> — in a single
+        real-time platform accessible from any device with a browser.
+      </p>
+      <div class="divider"></div>
+      <p style="font-size:12px;color:#6B7280;margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">User Roles</p>
+      <table class="wi-table">
+        <thead><tr><th>Role</th><th>Who Uses It</th><th>Main Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><span class="role-badge role-dispatch">📋 Dispatch</span></td><td>Dispatch In-Charge / Inventory Controller</td><td>Upload invoices, generate ASNs, monitor deliveries, generate reports</td></tr>
+          <tr><td><span class="role-badge role-delivery">🚚 Delivery</span></td><td>Delivery Helper / Driver</td><td>View assigned stops, start delivery run, tag each delivery with status and photo</td></tr>
+          <tr><td><span class="role-badge role-customer">📦 Customer</span></td><td>Customer / Consignee</td><td>Track incoming orders using their customer code (read-only)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 2. HOW TO ACCESS -->
+  <div class="section">
+    <div class="section-hd">
+      <div class="section-hd-icon" style="background:#E0F2FE">🌐</div>
+      <div><h2>2. How to Access</h2><p>Opening the portal</p></div>
+    </div>
+    <div class="section-body">
+      <p style="color:#374151;margin-bottom:12px">The portal is accessed through a web browser — no installation required. Open the link provided by your administrator.</p>
+      <div class="info-box"><strong>Access:</strong> The portal URL is provided by the system administrator. It can be opened on any smartphone, tablet, or computer with internet access.</div>
+      <p style="color:#374151;margin-top:12px">On the landing page, select your role:</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:12px">
+        <div style="flex:1;min-width:160px;background:#FEF0F0;border-radius:8px;padding:14px;text-align:center">
+          <div style="font-size:26px;margin-bottom:6px">📋</div>
+          <div style="font-weight:700;font-size:13px;color:#C0181A">Dispatch</div>
+          <div style="font-size:11px;color:#6B7280;margin-top:3px">Create &amp; manage ASNs</div>
+        </div>
+        <div style="flex:1;min-width:160px;background:#FFFBEB;border-radius:8px;padding:14px;text-align:center">
+          <div style="font-size:26px;margin-bottom:6px">🚚</div>
+          <div style="font-weight:700;font-size:13px;color:#D97706">Delivery</div>
+          <div style="font-size:11px;color:#6B7280;margin-top:3px">Tag deliveries on the road</div>
+        </div>
+        <div style="flex:1;min-width:160px;background:#E0F2FE;border-radius:8px;padding:14px;text-align:center">
+          <div style="font-size:26px;margin-bottom:6px">📦</div>
+          <div style="font-weight:700;font-size:13px;color:#0284C7">Customer</div>
+          <div style="font-size:11px;color:#6B7280;margin-top:3px">Track my incoming orders</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. ASN STATUS FLOW -->
+  <div class="section">
+    <div class="section-hd">
+      <div class="section-hd-icon" style="background:#EDE9FE">🔄</div>
+      <div><h2>3. ASN Status Flow</h2><p>Lifecycle of a delivery</p></div>
+    </div>
+    <div class="section-body">
+      <div class="flow">
+        <div class="flow-box">Pending</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box active">In Transit</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box done">Delivered</div>
+      </div>
+      <div style="margin-top:6px;margin-left:4px">
+        <span class="tag tag-amber">Rescheduled</span>
+        <span class="tag tag-red">Returned</span>
+        <span class="tag tag-gray">Voided</span>
+      </div>
+      <div class="divider"></div>
+      <table class="wi-table">
+        <thead><tr><th>Status</th><th>Meaning</th><th>Set By</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag tag-gray">Pending</span></td><td>ASN created, not yet dispatched</td><td>System (on ASN generation)</td></tr>
+          <tr><td><span class="tag tag-amber">In Transit</span></td><td>Delivery run has started</td><td>Delivery personnel — Start Delivery Run button</td></tr>
+          <tr><td><span class="tag tag-green">Delivered</span></td><td>Successfully delivered and tagged</td><td>Delivery personnel — on tagging</td></tr>
+          <tr><td><span class="tag tag-red">Returned</span></td><td>Customer refused or not found</td><td>Delivery personnel — on tagging with reason</td></tr>
+          <tr><td><span class="tag tag-amber">Rescheduled</span></td><td>Delivery moved to another date</td><td>Delivery personnel — on tagging with reason</td></tr>
+          <tr><td><span class="tag tag-gray">Voided</span></td><td>ASN cancelled</td><td>Dispatch In-Charge</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 4. DISPATCH PROCEDURE -->
+  <div class="section">
+    <div class="section-hd">
+      <div class="section-hd-icon" style="background:#FEF0F0">📋</div>
+      <div><h2>4. Dispatch Procedure</h2><p><span class="role-badge role-dispatch">📋 Dispatch</span> &nbsp;Dispatch In-Charge</p></div>
+    </div>
+    <div class="section-body">
+      <div class="info-box"><strong>Login:</strong> Select "Dispatch" on the landing page and enter your dispatch PIN.</div>
+
+      <p style="font-weight:700;font-size:12px;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;margin-top:16px">Step-by-Step</p>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h4>Upload SI Invoice Report (Staging)</h4>
+            <p>Go to the <strong>Upload tab</strong>. Under <em>SI Invoice Staging</em>, upload the full SI Invoice Report from your ERP (Excel format). The system deduplicates automatically — you can re-upload at any time to keep staging up to date.</p>
+            <p class="note">This is a standing upload. You do not need to clear old data first.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h4>Upload the Delivery Manifest</h4>
+            <p>Still on the <strong>Upload tab</strong>, under <em>Manifest Upload</em>, upload the Delivery Planning Manifest (Excel). Select the correct route sheet from the dropdown that appears.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h4>Parse &amp; Generate ASNs</h4>
+            <p>Click <strong>Parse &amp; Generate ASNs →</strong>. The system matches the manifest against the SI staging data and creates one ASN per customer per route. A summary will appear showing how many ASNs were generated.</p>
+            <div class="warn-box"><strong>Important:</strong> Ensure the SI Invoice Report has been uploaded first. ASNs will not generate correctly if the staging data is empty or outdated.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <h4>Review Generated ASNs</h4>
+            <p>Go to the <strong>ASNs tab</strong> to view all generated ASNs. Filter by status or search by customer name. Each ASN shows the assigned delivery personnel, route, and expected delivery date.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <h4>Monitor via Live Tracker</h4>
+            <p>The <strong>Tracker tab</strong> shows the live status of all delivery runs in real time. It auto-refreshes every 60 seconds. Each run shows stop-level progress — which customers have been tagged and which are still pending.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">6</div>
+          <div class="step-body">
+            <h4>Generate Run Reports</h4>
+            <p>Go to the <strong>Reports tab</strong>. Select a Control Number and Released Date, then click <strong>Generate Report</strong> to produce a full delivery run summary. Reports can be exported for record-keeping.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <p style="font-weight:700;font-size:12px;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Settings Tab — Administrative Functions</p>
+      <table class="wi-table">
+        <thead><tr><th>Sub-tab</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Delivery Personnel</strong></td><td>Add, view, or remove delivery personnel and their codes</td></tr>
+          <tr><td><strong>Lead Times</strong></td><td>Set expected delivery lead times per route</td></tr>
+          <tr><td><strong>Change PIN</strong></td><td>Update the dispatch access PIN</td></tr>
+          <tr><td><strong>Manage Duplicates</strong></td><td>Review and clean up duplicate SI entries in staging</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 5. DELIVERY PROCEDURE -->
+  <div class="section">
+    <div class="section-hd">
+      <div class="section-hd-icon" style="background:#FFFBEB">🚚</div>
+      <div><h2>5. Delivery Procedure</h2><p><span class="role-badge role-delivery">🚚 Delivery</span> &nbsp;Delivery Personnel / Driver</p></div>
+    </div>
+    <div class="section-body">
+      <div class="info-box"><strong>Login:</strong> Select "Delivery" on the landing page and enter your Personnel Code (e.g. DP-001).</div>
+
+      <p style="font-weight:700;font-size:12px;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;margin-top:16px">Step-by-Step</p>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h4>Select Your Run</h4>
+            <p>After entering your code, a selection screen will show your assigned Control Numbers and dates. Select the correct run for today's delivery.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h4>Start the Delivery Run</h4>
+            <p>On the run screen, tap <strong>Start Delivery Run</strong>. This sets all your assigned ASNs to <em>In Transit</em> simultaneously — signaling to dispatch that the run has begun.</p>
+            <div class="warn-box"><strong>Note:</strong> This action cannot be undone. Only tap Start when the truck has physically left the warehouse.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h4>View Your Stops</h4>
+            <p>Your delivery stops are listed in order by Stop Number. Each stop shows the customer name, number of invoices, and current tagging status. Tap a stop to expand its Sales Invoices.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <h4>Tag Each Delivery</h4>
+            <p>Tap <strong>Tap to tag →</strong> on an SI to open the tagging screen. Review the customer details, items, and delivery instructions, then select the delivery outcome:</p>
+            <div style="margin-top:8px">
+              <span class="tag tag-green">✅ Delivered</span> — items successfully handed over<br>
+              <span class="tag tag-red">🔴 Returned</span> — customer refused or unavailable<br>
+              <span class="tag tag-amber">🔄 Rescheduled</span> — moved to a future delivery date
+            </div>
+            <p class="note">A reason is required when tagging as Returned or Rescheduled.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <h4>Enter Recipient Name &amp; Take Photo</h4>
+            <p>Enter the name of the person who received the delivery. Tap <strong>Take / Choose Photo</strong> to capture or upload a Proof of Delivery (POD) photo.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">6</div>
+          <div class="step-body">
+            <h4>Submit the Delivery Tag</h4>
+            <p>Tap <strong>Submit Delivery Tag</strong>. The tag is saved and the SI is marked as done. Repeat for each SI at the stop. Once all SIs at a stop are tagged, the stop collapses automatically.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. CUSTOMER PROCEDURE -->
+  <div class="section">
+    <div class="section-hd">
+      <div class="section-hd-icon" style="background:#E0F2FE">📦</div>
+      <div><h2>6. Customer Procedure</h2><p><span class="role-badge role-customer">📦 Customer</span> &nbsp;Consignee / Customer</p></div>
+    </div>
+    <div class="section-body">
+      <div class="info-box"><strong>Login:</strong> Select "Customer" on the landing page and enter your Customer Code.</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h4>Enter Customer Code &amp; Select Run</h4>
+            <p>Enter your customer code, then select the Control Number and date for the delivery you want to track.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h4>View Incoming Orders</h4>
+            <p>Your ASN card will appear, showing all Sales Invoices under your delivery. Each SI lists the invoice number, items, quantities, and current delivery status.</p>
+            <p class="note">The customer view is read-only. No tagging or editing is available from this screen.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. QUICK REFERENCE -->
+  <div class="section">
+    <div class="section-hd">
+      <div class="section-hd-icon" style="background:#F9FAFB">📎</div>
+      <div><h2>7. Quick Reference</h2><p>Common terms and reminders</p></div>
+    </div>
+    <div class="section-body">
+      <table class="wi-table">
+        <thead><tr><th>Term</th><th>Definition</th></tr></thead>
+        <tbody>
+          <tr><td><strong>ASN</strong></td><td>Advance Shipping Notice — a delivery record created for each customer per route</td></tr>
+          <tr><td><strong>SI</strong></td><td>Sales Invoice — individual invoice line under an ASN</td></tr>
+          <tr><td><strong>Control Number</strong></td><td>Unique identifier for a delivery run (batch of ASNs)</td></tr>
+          <tr><td><strong>Stop</strong></td><td>A customer delivery point on a route; may have multiple SIs</td></tr>
+          <tr><td><strong>POD</strong></td><td>Proof of Delivery — photo captured by delivery personnel upon drop-off</td></tr>
+          <tr><td><strong>Staging</strong></td><td>SI data uploaded by dispatch as a reference pool before ASN generation</td></tr>
+          <tr><td><strong>Personnel Code</strong></td><td>Unique login code for each delivery helper (e.g. DP-001)</td></tr>
+        </tbody>
+      </table>
+
+      <div class="divider"></div>
+      <p style="font-weight:700;font-size:12px;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Common Issues &amp; What to Do</p>
+      <table class="wi-table">
+        <thead><tr><th>Issue</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr><td>ASNs not generated after manifest upload</td><td>Ensure SI Invoice Report was uploaded to staging first, then re-parse</td></tr>
+          <tr><td>Delivery personnel cannot see their run</td><td>Confirm personnel code is correctly registered under Settings → Delivery Personnel</td></tr>
+          <tr><td>Wrong run selected by delivery personnel</td><td>Use the Back button to return to run selection and choose the correct control number</td></tr>
+          <tr><td>Photo not uploading</td><td>Check internet connection; try again or submit tag without photo and note it in remarks</td></tr>
+          <tr><td>Duplicate SIs in staging</td><td>Go to Settings → Manage Duplicates to review and clean</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div style="text-align:center;margin-top:32px;color:#9CA3AF;font-size:11px">
+    <p>Grand Majesty Pharmaceutical Inc. · GMPI ASN Portal v4.0 · WI-ASN-001 · May 2026</p>
+    <p style="margin-top:4px">Internal Use Only · For questions contact the Inventory &amp; Logistics Division</p>
+  </div>
+
+</div>
+</body>
+</html>

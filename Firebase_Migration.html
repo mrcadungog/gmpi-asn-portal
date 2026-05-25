@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>GMPI Firebase Migration</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#0A0705;color:#fff;padding:32px;min-height:100vh}
+h1{font-size:20px;font-weight:700;color:#C9A84C;margin-bottom:6px}
+.sub{font-size:12px;color:rgba(255,255,255,.4);margin-bottom:28px}
+.card{background:#1a1611;border:1px solid rgba(201,168,76,.2);border-radius:10px;padding:24px;margin-bottom:20px}
+.step{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px}
+.step:last-child{border-bottom:none}
+.dot{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;font-weight:700}
+.dot.ok{background:#059669}
+.dot.err{background:#DC2626}
+.dot.spin{background:#D97706;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.label{flex:1}
+.count{font-size:11px;color:rgba(255,255,255,.4)}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;border-radius:8px;border:none;font-size:14px;font-weight:700;cursor:pointer;background:#C9A84C;color:#0A0705}
+.btn:hover{background:#A07820}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-danger{background:#DC2626;color:#fff}
+.btn-danger:hover{background:#b91c1c}
+.log{background:#000;border-radius:8px;padding:16px;font-family:monospace;font-size:11px;color:#4ade80;max-height:220px;overflow-y:auto;margin-top:12px;white-space:pre-wrap}
+.warn{color:#fbbf24}
+.done{color:#4ade80;font-size:16px;font-weight:700;margin-top:16px}
+</style>
+</head>
+<body>
+<h1>GMPI Firebase Migration</h1>
+<div class="sub">Migrates Settings, Personnel, and Lead Times only &nbsp;|&nbsp; <span style="color:#fbbf24">ASNs · SO Lines · SI Staging · Tags · Photos skipped (sample data — enter fresh via app)</span></div>
+
+<div class="card">
+  <div id="steps">
+    <div class="step" id="s-read"><div class="dot" id="d-read">1</div><div class="label">Read data from Google Sheets</div><div class="count" id="c-read">—</div></div>
+    <div class="step" id="s-pin"><div class="dot" id="d-pin">2</div><div class="label">Dispatch PIN</div><div class="count" id="c-pin">—</div></div>
+    <div class="step" id="s-pers"><div class="dot" id="d-pers">3</div><div class="label">Personnel</div><div class="count" id="c-pers">—</div></div>
+    <div class="step" id="s-lt"><div class="dot" id="d-lt">4</div><div class="label">Lead Times (slash-safe IDs)</div><div class="count" id="c-lt">—</div></div>
+    <div class="step"><div class="dot" style="background:#374151">—</div><div class="label" style="color:rgba(255,255,255,.3)">ASNs</div><div class="count" style="color:#fbbf24">Skipped — sample data</div></div>
+    <div class="step"><div class="dot" style="background:#374151">—</div><div class="label" style="color:rgba(255,255,255,.3)">SO Lines</div><div class="count" style="color:#fbbf24">Skipped — re-upload via Excel</div></div>
+    <div class="step"><div class="dot" style="background:#374151">—</div><div class="label" style="color:rgba(255,255,255,.3)">Delivery Tags</div><div class="count" style="color:#fbbf24">Skipped — sample data</div></div>
+    <div class="step"><div class="dot" style="background:#374151">—</div><div class="label" style="color:rgba(255,255,255,.3)">POD Photos</div><div class="count" style="color:#fbbf24">Skipped — sample data</div></div>
+    <div class="step"><div class="dot" style="background:#374151">—</div><div class="label" style="color:rgba(255,255,255,.3)">SI Staging</div><div class="count" style="color:#fbbf24">Skipped — re-upload via Excel</div></div>
+  </div>
+  <div id="done-msg" style="display:none" class="done">✅ Migration complete! PIN, Personnel, and Lead Times are live in Firestore.</div>
+</div>
+
+<button class="btn" id="run-btn" onclick="runMigration()">▶ Run Migration</button>
+&nbsp;&nbsp;
+<button class="btn btn-danger" id="clear-btn" onclick="clearAll()">🗑 Clear Firestore</button>
+
+<div class="card" style="margin-top:20px">
+  <div style="font-size:13px;font-weight:700;color:#C9A84C;margin-bottom:12px">🔐 Set Dispatch PIN</div>
+  <div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:14px">Use this if login says "Incorrect PIN". Type the PIN you want to use, then click Set PIN.</div>
+  <div style="display:flex;gap:10px;align-items:center">
+    <input type="password" id="pin-input" placeholder="Enter new PIN (min 6 chars)" style="flex:1;padding:10px 14px;border-radius:8px;border:1px solid rgba(201,168,76,.3);background:#0d0b08;color:#fff;font-size:13px">
+    <button class="btn" onclick="setPin()" id="pin-btn">Set PIN</button>
+  </div>
+  <div id="pin-msg" style="font-size:12px;margin-top:8px;display:none"></div>
+</div>
+
+<div class="card" style="margin-top:20px">
+  <div style="font-size:13px;font-weight:700;color:#C9A84C;margin-bottom:12px">👑 Seed Superadmin</div>
+  <div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:14px">
+    Creates <strong style="color:#fff">WHS-MGR</strong> superadmin account in Firestore with default password <strong style="color:#fff">GMPI@2026</strong>.<br>
+    You will be forced to change the password on first login.
+  </div>
+  <button class="btn" onclick="seedSuperadmin()" id="seed-btn">👑 Seed WHS-MGR Superadmin</button>
+  <div id="seed-msg" style="font-size:12px;margin-top:8px;display:none"></div>
+</div>
+
+<div class="log" id="log" style="margin-top:20px;display:none"></div>
+
+<script>
+const _fbApp=firebase.initializeApp({
+  apiKey:"AIzaSyBrYLBg67AxE79WDx6PPWZKRhmZwSynhFc",
+  authDomain:"gmpi-delivery-mgt-system.firebaseapp.com",
+  projectId:"gmpi-delivery-mgt-system",
+  storageBucket:"gmpi-delivery-mgt-system.firebasestorage.app",
+  messagingSenderId:"231556470351",
+  appId:"1:231556470351:web:cfa808bb4c43a2238afc3a"
+});
+const _db=firebase.firestore();
+
+function log(msg,cls=''){
+  const el=document.getElementById('log');
+  el.style.display='block';
+  el.innerHTML+=`<span class="${cls}">${msg}\n</span>`;
+  el.scrollTop=el.scrollHeight;
+}
+function setStep(id,state,countText){
+  const dot=document.getElementById('d-'+id);
+  const cnt=document.getElementById('c-'+id);
+  dot.className='dot'+(state==='ok'?' ok':state==='err'?' err':state==='spin'?' spin':'');
+  dot.textContent=state==='ok'?'✓':state==='err'?'✗':dot.textContent;
+  if(countText)cnt.textContent=countText;
+}
+
+async function batchWrite(collection,items){
+  for(let i=0;i<items.length;i+=499){
+    const b=_db.batch();
+    items.slice(i,i+499).forEach(item=>{
+      const{id,...data}=item;
+      b.set(_db.collection(collection).doc(id),data);
+    });
+    await b.commit();
+  }
+}
+
+// Only the 3 collections this migration writes. ASNs/lines/tags/photos/si_staging are not touched.
+const COLLECTIONS=['settings','personnel','lead_times'];
+
+async function deleteCollection(col){
+  let deleted=0;
+  while(true){
+    const snap=await _db.collection(col).limit(50).get();
+    if(snap.empty)break;
+    const b=_db.batch();
+    snap.docs.forEach(d=>b.delete(d.ref));
+    await b.commit();
+    deleted+=snap.docs.length;
+    log(`  ${col}: deleted ${deleted}…`);
+  }
+}
+
+async function clearAll(){
+  if(!confirm('Delete ALL Firestore data? This cannot be undone.'))return;
+  document.getElementById('clear-btn').disabled=true;
+  document.getElementById('run-btn').disabled=true;
+  log('Clearing Firestore…','warn');
+  try{
+    for(const col of COLLECTIONS){
+      log(`Deleting ${col}…`);
+      await deleteCollection(col);
+      log(`  ${col} cleared ✓`);
+    }
+    log('✅ Firestore cleared. You can now run migration fresh.','');
+  }catch(e){log('Clear error: '+e.message,'warn');}
+  document.getElementById('clear-btn').disabled=false;
+  document.getElementById('run-btn').disabled=false;
+}
+
+async function _hash(s){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s+'GMPI_SALT_2026'));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+async function setPin(){
+  const pin=document.getElementById('pin-input').value.trim();
+  const msg=document.getElementById('pin-msg');
+  msg.style.display='block';
+  if(!pin||pin.length<6){msg.style.color='#fbbf24';msg.textContent='PIN must be at least 6 characters.';return;}
+  document.getElementById('pin-btn').disabled=true;
+  msg.style.color='#D97706';msg.textContent='Saving…';
+  try{
+    const h=await _hash(pin);
+    await _db.collection('settings').doc('dispatch_pin').set({value:h});
+    msg.style.color='#4ade80';msg.textContent='✓ PIN set successfully. You can now log in with that PIN.';
+    document.getElementById('pin-input').value='';
+  }catch(e){msg.style.color='#fbbf24';msg.textContent='Error: '+e.message;}
+  document.getElementById('pin-btn').disabled=false;
+}
+
+async function seedSuperadmin(){
+  const msg=document.getElementById('seed-msg');
+  const btn=document.getElementById('seed-btn');
+  msg.style.display='block';
+  btn.disabled=true;
+  msg.style.color='#D97706';msg.textContent='Checking…';
+  try{
+    const existing=await _db.collection('users').doc('WHS-MGR').get();
+    if(existing.exists){
+      const ok=confirm('WHS-MGR already exists in Firestore. Overwrite with fresh GMPI@2026 password?');
+      if(!ok){msg.style.color='rgba(255,255,255,.4)';msg.textContent='Cancelled.';btn.disabled=false;return;}
+    }
+    msg.style.color='#D97706';msg.textContent='Creating account…';
+    const h=await _hash('GMPI@2026');
+    await _db.collection('users').doc('WHS-MGR').set({
+      name:               'Michael',
+      role:               'superadmin',
+      passwordHash:       h,
+      mustChangePassword: true,
+      active:             true,
+      created_at:         new Date().toISOString()
+    });
+    msg.style.color='#4ade80';
+    msg.textContent='✓ WHS-MGR superadmin created. Default password: GMPI@2026. You will be asked to change it on first login.';
+  }catch(e){msg.style.color='#fbbf24';msg.textContent='Error: '+e.message;}
+  btn.disabled=false;
+}
+
+async function runMigration(){
+  document.getElementById('run-btn').disabled=true;
+  log('Starting migration…');
+
+  // Step 1 — read from Sheets
+  setStep('read','spin');
+  log('Reading all data from Google Sheets…');
+  const data=await new Promise((res,rej)=>{
+    google.script.run.withSuccessHandler(res).withFailureHandler(rej).getMigrationData();
+  }).catch(e=>{setStep('read','err');log('ERROR reading sheets: '+e.message,'warn');throw e;});
+
+  if(!data.ok){setStep('read','err');log('getMigrationData returned error: '+(data.err||data.msg),'warn');return;}
+  setStep('read','ok',`PIN:${data.dispatchPinHash?'✓':'✗'} · ${data.personnel.length} personnel · ${data.leadTimes.length} routes`);
+  log(`Got: ${data.personnel.length} personnel, ${data.leadTimes.length} lead time routes`);
+  log('ASNs / SO Lines / Tags / Photos / SI Staging — skipped (sample data)','warn');
+
+  // Step 2 — Dispatch PIN
+  setStep('pin','spin');
+  try{
+    if(data.dispatchPinHash){
+      await _db.collection('settings').doc('dispatch_pin').set({value:data.dispatchPinHash});
+      setStep('pin','ok','1 record');log('PIN migrated ✓');
+    }else{
+      setStep('pin','err','No PIN found');log('WARNING: No dispatch PIN found in Sheets','warn');
+    }
+  }catch(e){setStep('pin','err');log('PIN error: '+e.message,'warn');}
+
+  // Step 3 — Personnel
+  setStep('pers','spin');
+  try{
+    await batchWrite('personnel',data.personnel.map(p=>({
+      id:    p.code,
+      Name:  p.Name,
+      Contact:    p.Contact,
+      Created_At: p.Created_At,
+      Active:     p.Active
+    })));
+    setStep('pers','ok',data.personnel.length+' records');log(`Personnel: ${data.personnel.length} migrated ✓`);
+  }catch(e){setStep('pers','err');log('Personnel error: '+e.message,'warn');}
+
+  // Step 4 — Lead Times (slashes in route names replaced with __ for Firestore doc IDs)
+  setStep('lt','spin');
+  try{
+    await batchWrite('lead_times',data.leadTimes.map(lt=>({
+      id:          lt.route.replace(/\//g,'__'),
+      Route:       lt.route,
+      Cluster:     lt.Cluster,
+      Dispatch_SLA:lt.Dispatch_SLA,
+      Order_SLA:   lt.Order_SLA,
+      Updated_At:  lt.Updated_At
+    })));
+    setStep('lt','ok',data.leadTimes.length+' records');log(`Lead Times: ${data.leadTimes.length} migrated ✓`);
+  }catch(e){setStep('lt','err');log('Lead Times error: '+e.message,'warn');}
+
+  log('');
+  log('🎉 Migration complete! PIN · Personnel · Lead Times are live in Firestore.','');
+  document.getElementById('done-msg').style.display='block';
+}
+</script>
+</body>
+</html>

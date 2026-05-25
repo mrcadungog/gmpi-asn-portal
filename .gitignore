@@ -1,0 +1,16 @@
+# Clasp / GAS
+.clasp.json
+
+# Credentials & secrets
+Firebase Config.txt
+*.env
+*.secret
+
+# OS junk
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Editor
+.vscode/
+*.swp

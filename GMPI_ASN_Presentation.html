@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GMPI ASN Portal — Management Presentation</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#C9A84C;--gold2:#e8c96a;--dark:#0A0705;--card:#1a1611;
+  --green:#059669;--red:#DC2626;--blue:#3B82F6;--tx:#fff;--tx2:rgba(255,255,255,.6);--tx3:rgba(255,255,255,.3);
+}
+body{font-family:'Segoe UI',sans-serif;background:var(--dark);color:var(--tx);overflow:hidden;height:100vh;width:100vw}
+
+/* SLIDE CONTAINER */
+.deck{width:100vw;height:100vh;position:relative}
+.slide{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;align-items:center;padding:60px 80px;opacity:0;transition:opacity .4s ease}
+.slide.active{display:flex;opacity:1}
+
+/* NAV */
+.nav{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:16px;z-index:100;background:rgba(0,0,0,.5);padding:10px 20px;border-radius:40px;backdrop-filter:blur(8px)}
+.nav button{background:none;border:1px solid rgba(201,168,76,.4);color:var(--gold);padding:6px 18px;border-radius:20px;cursor:pointer;font-size:13px;font-weight:600;transition:.2s}
+.nav button:hover{background:var(--gold);color:var(--dark)}
+.slide-counter{font-size:12px;color:var(--tx2);min-width:60px;text-align:center}
+.dot-nav{display:flex;gap:6px}
+.dot-nav span{width:7px;height:7px;border-radius:50%;background:var(--tx3);cursor:pointer;transition:.2s}
+.dot-nav span.on{background:var(--gold)}
+
+/* COMMON */
+.label{font-size:11px;font-weight:700;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin-bottom:10px}
+h1{font-size:52px;font-weight:900;line-height:1.1;color:#fff}
+h2{font-size:34px;font-weight:800;color:#fff;margin-bottom:8px}
+h3{font-size:20px;font-weight:700;color:var(--gold)}
+p{font-size:16px;color:var(--tx2);line-height:1.7}
+.gold{color:var(--gold)}
+.accent{background:linear-gradient(90deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+
+/* SLIDE 1 — TITLE */
+.s1-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 60% 50%,rgba(201,168,76,.12) 0%,transparent 70%)}
+.s1-wrap{position:relative;z-index:1;text-align:center;max-width:800px}
+.s1-badge{display:inline-block;border:1px solid rgba(201,168,76,.4);border-radius:40px;padding:6px 20px;font-size:12px;color:var(--gold);letter-spacing:2px;margin-bottom:28px}
+.s1-title{font-size:58px;font-weight:900;line-height:1.1;margin-bottom:16px}
+.s1-sub{font-size:18px;color:var(--tx2);margin-bottom:36px}
+.s1-meta{display:flex;gap:32px;justify-content:center;font-size:13px;color:var(--tx3)}
+.s1-meta span{display:flex;align-items:center;gap:6px}
+
+/* SLIDE 2 — PROBLEM */
+.prob-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;width:100%;max-width:900px;margin-top:24px}
+.prob-card{background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.25);border-radius:12px;padding:20px 24px}
+.prob-card .icon{font-size:28px;margin-bottom:8px}
+.prob-card h4{font-size:15px;font-weight:700;color:#f87171;margin-bottom:6px}
+.prob-card p{font-size:13px;color:var(--tx2);line-height:1.6}
+
+/* SLIDE 3 — SOLUTION */
+.sol-wrap{display:flex;gap:48px;align-items:center;width:100%;max-width:1000px}
+.sol-left{flex:1}
+.sol-right{flex:1;display:flex;flex-direction:column;gap:12px}
+.sol-item{display:flex;gap:14px;align-items:flex-start;background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.15);border-radius:10px;padding:16px}
+.sol-item .ico{font-size:24px;flex-shrink:0}
+.sol-item h4{font-size:14px;font-weight:700;color:var(--gold);margin-bottom:3px}
+.sol-item p{font-size:12px;color:var(--tx2);line-height:1.5}
+
+/* SLIDE 4 — HOW IT WORKS */
+.flow{display:flex;align-items:center;gap:0;width:100%;max-width:960px;margin-top:28px}
+.flow-step{flex:1;text-align:center;padding:20px 10px}
+.flow-step .num{width:42px;height:42px;border-radius:50%;background:var(--gold);color:var(--dark);font-weight:900;font-size:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+.flow-step h4{font-size:13px;font-weight:700;margin-bottom:6px}
+.flow-step p{font-size:11px;color:var(--tx2);line-height:1.5}
+.flow-arrow{color:var(--gold);font-size:22px;flex-shrink:0;opacity:.5}
+
+/* SLIDE 5 — ROLES */
+.roles-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;width:100%;max-width:1000px;margin-top:24px}
+.role-card{background:var(--card);border:1px solid rgba(201,168,76,.2);border-radius:12px;padding:20px 14px;text-align:center}
+.role-card .ico{font-size:32px;margin-bottom:10px}
+.role-card h4{font-size:13px;font-weight:700;color:var(--gold);margin-bottom:8px}
+.role-card ul{list-style:none;font-size:11px;color:var(--tx2);line-height:1.9;text-align:left}
+.role-card ul li::before{content:'· ';color:var(--gold)}
+
+/* SLIDE 6 — BENEFITS */
+.ben-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;width:100%;max-width:960px;margin-top:24px}
+.ben-card{background:var(--card);border:1px solid rgba(201,168,76,.15);border-radius:12px;padding:22px}
+.ben-card .big{font-size:36px;font-weight:900;color:var(--gold);line-height:1}
+.ben-card .desc{font-size:12px;color:var(--tx2);margin-top:4px;margin-bottom:10px}
+.ben-card p{font-size:13px;color:var(--tx);line-height:1.6}
+
+/* SLIDE 7 — SECURITY */
+.sec-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;max-width:860px;margin-top:24px}
+.sec-item{display:flex;gap:14px;align-items:flex-start;padding:16px 18px;background:rgba(5,150,105,.06);border:1px solid rgba(5,150,105,.2);border-radius:10px}
+.sec-item .ico{font-size:22px;flex-shrink:0}
+.sec-item h4{font-size:13px;font-weight:700;color:#34d399;margin-bottom:4px}
+.sec-item p{font-size:12px;color:var(--tx2);line-height:1.5}
+
+/* SLIDE 8 — TECH */
+.tech-wrap{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;max-width:860px;margin-top:28px}
+.tech-pill{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--card);border:1px solid rgba(201,168,76,.2);border-radius:40px;font-size:14px;font-weight:600}
+.tech-pill span{font-size:22px}
+
+/* SLIDE 9 — NEXT STEPS */
+.steps-list{display:flex;flex-direction:column;gap:12px;width:100%;max-width:700px;margin-top:24px}
+.step-item{display:flex;gap:16px;align-items:center;padding:16px 20px;background:var(--card);border:1px solid rgba(201,168,76,.15);border-radius:10px}
+.step-item .num{width:32px;height:32px;border-radius:50%;background:var(--gold);color:var(--dark);font-weight:900;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.step-item h4{font-size:14px;font-weight:700;margin-bottom:2px}
+.step-item p{font-size:12px;color:var(--tx2)}
+.tag{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:8px;vertical-align:middle}
+.tag.done{background:rgba(5,150,105,.2);color:#34d399}
+.tag.wip{background:rgba(201,168,76,.2);color:var(--gold)}
+.tag.next{background:rgba(59,130,246,.2);color:#60a5fa}
+
+/* SLIDE 10 — CLOSING */
+.s10-wrap{text-align:center;max-width:740px;position:relative;z-index:1}
+.s10-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 40% 50%,rgba(201,168,76,.1) 0%,transparent 70%)}
+.s10-big{font-size:64px;font-weight:900;line-height:1;margin-bottom:16px}
+.s10-sub{font-size:18px;color:var(--tx2);margin-bottom:32px;line-height:1.6}
+.s10-url{font-family:monospace;font-size:12px;color:var(--tx3);word-break:break-all;padding:10px 20px;border:1px solid rgba(255,255,255,.1);border-radius:8px;display:inline-block}
+
+/* PROGRESS BAR */
+.progress{position:fixed;top:0;left:0;height:2px;background:var(--gold);transition:width .3s ease;z-index:200}
+
+@media print{
+  .nav,.progress{display:none}
+  .slide{position:relative;display:flex!important;opacity:1!important;page-break-after:always;height:100vh}
+}
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+
+<div class="deck" id="deck">
+
+  <!-- SLIDE 1: TITLE -->
+  <div class="slide active" id="slide-1">
+    <div class="s1-bg"></div>
+    <div class="s1-wrap">
+      <div class="s1-badge">MANAGEMENT PRESENTATION · 2026</div>
+      <div class="s1-title">GMPI <span class="accent">ASN Portal</span></div>
+      <div class="s1-sub">Advanced Shipment Notification & Delivery Management System<br>Built in-house for Grand Majesty Pharmaceutical, Inc.</div>
+      <div class="s1-meta">
+        <span>📦 Delivery Operations</span>
+        <span>🔥 Firebase Powered</span>
+        <span>📱 Mobile-Ready</span>
+        <span>🔐 Multi-Role Access</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 2: PROBLEM -->
+  <div class="slide" id="slide-2">
+    <div class="label">The Challenge</div>
+    <h2>What We Were Dealing With</h2>
+    <p style="margin-bottom:4px">Manual processes that slowed down delivery operations and created accountability gaps.</p>
+    <div class="prob-grid">
+      <div class="prob-card">
+        <div class="icon">📋</div>
+        <h4>No Centralized Tracking</h4>
+        <p>ASN records were spread across spreadsheets. No single source of truth for delivery status.</p>
+      </div>
+      <div class="prob-card">
+        <div class="icon">⏱️</div>
+        <h4>Manual SLA Monitoring</h4>
+        <p>Lead times and delivery deadlines were tracked manually — easy to miss, hard to audit.</p>
+      </div>
+      <div class="prob-card">
+        <div class="icon">👤</div>
+        <h4>No Personnel Accountability</h4>
+        <p>No clear record of who handled which delivery, when it was released, or what the outcome was.</p>
+      </div>
+      <div class="prob-card">
+        <div class="icon">📞</div>
+        <h4>Customer Visibility Gap</h4>
+        <p>Customers had no way to check their delivery status — everything went through a phone call.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 3: SOLUTION -->
+  <div class="slide" id="slide-3">
+    <div class="sol-wrap">
+      <div class="sol-left">
+        <div class="label">Our Solution</div>
+        <h2>A Purpose-Built<br><span class="gold">Delivery System</span></h2>
+        <p style="margin-top:12px">The GMPI ASN Portal is a custom web application built specifically for our operations — not a generic tool, but one shaped around how GMPI actually works.</p>
+        <p style="margin-top:12px;font-size:14px;color:var(--tx3)">Built entirely in-house. Zero licensing cost. Owned by GMPI.</p>
+      </div>
+      <div class="sol-right">
+        <div class="sol-item"><div class="ico">📦</div><div><h4>ASN Management</h4><p>Create, track, and close shipment notifications with full audit history.</p></div></div>
+        <div class="sol-item"><div class="ico">👥</div><div><h4>Personnel Assignment</h4><p>Assign delivery staff to runs with automatic ETA calculation based on lead times.</p></div></div>
+        <div class="sol-item"><div class="ico">📍</div><div><h4>Live Delivery Tracker</h4><p>Real-time status board showing active runs, released items, and pending deliveries.</p></div></div>
+        <div class="sol-item"><div class="ico">🏪</div><div><h4>Customer & Sales Portal</h4><p>Customers check their own delivery status. Sales team tracks order progress independently.</p></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 4: HOW IT WORKS -->
+  <div class="slide" id="slide-4">
+    <div class="label">Workflow</div>
+    <h2>How It Works — End to End</h2>
+    <div class="flow">
+      <div class="flow-step">
+        <div class="num">1</div>
+        <h4>Upload SI Data</h4>
+        <p>Dispatcher uploads Excel file with SO Lines & SI Staging records</p>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="num">2</div>
+        <h4>Generate ASNs</h4>
+        <p>System groups lines into ASNs by route and customer automatically</p>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="num">3</div>
+        <h4>Assign Personnel</h4>
+        <p>Dispatcher assigns delivery staff and release date; ETA auto-calculated</p>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="num">4</div>
+        <h4>Release & Track</h4>
+        <p>Run is released; live tracker updates; delivery tags generated</p>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="num">5</div>
+        <h4>POD & Close</h4>
+        <p>Proof of delivery recorded; ASN closed with full audit trail</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: ROLES -->
+  <div class="slide" id="slide-5">
+    <div class="label">Access Control</div>
+    <h2>Five Role-Based Portals</h2>
+    <div class="roles-grid">
+      <div class="role-card">
+        <div class="ico">🛡️</div>
+        <h4>Superadmin</h4>
+        <ul>
+          <li>Manage all users</li>
+          <li>Edit & reset accounts</li>
+          <li>Full system access</li>
+          <li>Settings control</li>
+        </ul>
+      </div>
+      <div class="role-card">
+        <div class="ico">📋</div>
+        <h4>Dispatcher</h4>
+        <ul>
+          <li>Upload SI data</li>
+          <li>Generate ASNs</li>
+          <li>Assign personnel</li>
+          <li>Release runs</li>
+        </ul>
+      </div>
+      <div class="role-card">
+        <div class="ico">🚚</div>
+        <h4>Delivery</h4>
+        <ul>
+          <li>View assigned runs</li>
+          <li>Record departure</li>
+          <li>Record arrival</li>
+          <li>Log expenses</li>
+        </ul>
+      </div>
+      <div class="role-card">
+        <div class="ico">💼</div>
+        <h4>Sales</h4>
+        <ul>
+          <li>View order status</li>
+          <li>Track deliveries</li>
+          <li>PIN-protected</li>
+          <li>Read-only access</li>
+        </ul>
+      </div>
+      <div class="role-card">
+        <div class="ico">🏪</div>
+        <h4>Customer</h4>
+        <ul>
+          <li>Self-service lookup</li>
+          <li>Check ASN status</li>
+          <li>No login required</li>
+          <li>Code-based access</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: BENEFITS -->
+  <div class="slide" id="slide-6">
+    <div class="label">Business Impact</div>
+    <h2>What This Means for GMPI</h2>
+    <div class="ben-grid">
+      <div class="ben-card">
+        <div class="big">100%</div>
+        <div class="desc">Delivery Visibility</div>
+        <p>Every ASN, every run, every personnel assignment is recorded and traceable — no more lost records.</p>
+      </div>
+      <div class="ben-card">
+        <div class="big">₱0</div>
+        <div class="desc">Licensing Cost</div>
+        <p>Built entirely in-house using free tools (Google Apps Script + Firebase free tier). No monthly subscription.</p>
+      </div>
+      <div class="ben-card">
+        <div class="big">5x</div>
+        <div class="desc">Faster Dispatch Processing</div>
+        <p>What previously took manual Excel work now takes minutes — upload, generate, assign, release.</p>
+      </div>
+      <div class="ben-card">
+        <div class="big">24/7</div>
+        <div class="desc">Customer Self-Service</div>
+        <p>Customers can check their delivery status anytime without calling the office.</p>
+      </div>
+      <div class="ben-card">
+        <div class="big">Auto</div>
+        <div class="desc">SLA Calculation</div>
+        <p>Expected delivery dates are calculated automatically based on route lead times — no manual computation.</p>
+      </div>
+      <div class="ben-card">
+        <div class="big">Full</div>
+        <div class="desc">Audit Trail</div>
+        <p>Every action is timestamped and attributed to a user. Management has complete visibility at all times.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 7: SECURITY -->
+  <div class="slide" id="slide-7">
+    <div class="label">Data Security</div>
+    <h2>Built With Security in Mind</h2>
+    <div class="sec-grid">
+      <div class="sec-item">
+        <div class="ico">🔐</div>
+        <div><h4>SHA-256 Password Hashing</h4><p>All passwords and PINs are hashed with a salt before storage. Plain-text passwords are never saved in the database.</p></div>
+      </div>
+      <div class="sec-item">
+        <div class="ico">👤</div>
+        <div><h4>Role-Based Access Control</h4><p>Each user role sees only what they need. Dispatchers cannot access customer data. Personnel cannot access settings.</p></div>
+      </div>
+      <div class="sec-item">
+        <div class="ico">🔄</div>
+        <div><h4>Forced Password Change</h4><p>New accounts are issued a default password and required to change it on first login before accessing any feature.</p></div>
+      </div>
+      <div class="sec-item">
+        <div class="ico">☁️</div>
+        <div><h4>Firebase Firestore</h4><p>Data is stored on Google's Firebase — enterprise-grade cloud infrastructure with automatic backups and uptime SLAs.</p></div>
+      </div>
+      <div class="sec-item">
+        <div class="ico">🚫</div>
+        <div><h4>Account Deactivation</h4><p>Superadmin can instantly deactivate any account. Deactivated users are blocked from login immediately.</p></div>
+      </div>
+      <div class="sec-item">
+        <div class="ico">✏️</div>
+        <div><h4>Superadmin Controls</h4><p>Full user management: add, edit, reset password, activate/deactivate — all from within the portal itself.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 8: TECH -->
+  <div class="slide" id="slide-8">
+    <div class="label">Technology</div>
+    <h2>What Powers the Portal</h2>
+    <p>Enterprise-grade tools, zero cost to GMPI.</p>
+    <div class="tech-wrap">
+      <div class="tech-pill"><span>📜</span> Google Apps Script</div>
+      <div class="tech-pill"><span>🔥</span> Firebase Firestore</div>
+      <div class="tech-pill"><span>🌐</span> Vanilla JavaScript</div>
+      <div class="tech-pill"><span>📊</span> SheetJS (Excel Export)</div>
+      <div class="tech-pill"><span>🔐</span> Web Crypto API</div>
+      <div class="tech-pill"><span>📱</span> Responsive HTML/CSS</div>
+      <div class="tech-pill"><span>☁️</span> Google Cloud Hosting</div>
+      <div class="tech-pill"><span>📦</span> No External Frameworks</div>
+    </div>
+    <p style="margin-top:28px;font-size:13px;text-align:center;color:var(--tx3)">
+      Hosted on Google's infrastructure — the same platform that runs Gmail and Google Drive.<br>
+      No server to maintain. No hosting bill. Accessible from any device with a browser.
+    </p>
+  </div>
+
+  <!-- SLIDE 9: NEXT STEPS -->
+  <div class="slide" id="slide-9">
+    <div class="label">Roadmap</div>
+    <h2>Where We Are & What's Next</h2>
+    <div class="steps-list">
+      <div class="step-item">
+        <div class="num">✓</div>
+        <div><h4>Core System Live <span class="tag done">DONE</span></h4><p>Multi-role login, ASN generation, personnel assignment, live tracker, customer portal — all operational.</p></div>
+      </div>
+      <div class="step-item">
+        <div class="num">✓</div>
+        <div><h4>Firebase Migration Complete <span class="tag done">DONE</span></h4><p>All settings, personnel, and lead times migrated from Google Sheets to Firestore.</p></div>
+      </div>
+      <div class="step-item">
+        <div class="num">✓</div>
+        <div><h4>User Management <span class="tag done">DONE</span></h4><p>Superadmin can add, edit, reset, activate/deactivate dispatcher accounts.</p></div>
+      </div>
+      <div class="step-item">
+        <div class="num">2</div>
+        <div><h4>SI Staging Data Upload <span class="tag wip">IN PROGRESS</span></h4><p>~10,341 SI records to be uploaded via the Excel upload feature.</p></div>
+      </div>
+      <div class="step-item">
+        <div class="num">3</div>
+        <div><h4>Full Go-Live & Staff Training <span class="tag next">NEXT</span></h4><p>Onboard all dispatchers and delivery personnel. Distribute QR access codes.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 10: CLOSING -->
+  <div class="slide" id="slide-10">
+    <div class="s10-bg"></div>
+    <div class="s10-wrap">
+      <div class="label">Thank You</div>
+      <div class="s10-big">Built for <span class="accent">GMPI.</span><br>Built to Last.</div>
+      <div class="s10-sub">The ASN Portal is not just a tool — it is a foundation.<br>A system that grows with GMPI's operations and gives management<br>the visibility, accountability, and efficiency they deserve.</div>
+      <div style="margin-bottom:16px;font-size:14px;color:var(--tx2)">🌐 Live Portal:</div>
+      <div class="s10-url">https://script.google.com/macros/s/AKfycbzqDYfrD4aHx4rjWuXcVQI6OiZwI6c5P_1I-x-4wy3aXNuuR2LWFmiyXMyYsS8jUXBk/exec</div>
+      <div style="margin-top:28px;font-size:13px;color:var(--tx3)">Presented by Michael Cadungog · Warehouse Manager · GMPI · 2026</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <button onclick="prevSlide()">← Prev</button>
+  <div class="dot-nav" id="dot-nav"></div>
+  <span class="slide-counter" id="counter">1 / 10</span>
+  <button onclick="nextSlide()">Next →</button>
+</div>
+
+<script>
+const TOTAL=10;
+var cur=1;
+
+function buildDots(){
+  const el=document.getElementById('dot-nav');
+  for(var i=1;i<=TOTAL;i++){
+    var d=document.createElement('span');
+    d.id='dot-'+i;
+    d.onclick=(function(n){return function(){goSlide(n);};})(i);
+    el.appendChild(d);
+  }
+}
+
+function goSlide(n){
+  document.getElementById('slide-'+cur).classList.remove('active');
+  document.getElementById('dot-'+cur).classList.remove('on');
+  cur=n;
+  document.getElementById('slide-'+cur).classList.add('active');
+  document.getElementById('dot-'+cur).classList.add('on');
+  document.getElementById('counter').textContent=cur+' / '+TOTAL;
+  document.getElementById('progress').style.width=((cur/TOTAL)*100)+'%';
+}
+
+function nextSlide(){if(cur<TOTAL)goSlide(cur+1);}
+function prevSlide(){if(cur>1)goSlide(cur-1);}
+
+document.addEventListener('keydown',function(e){
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key===' ')nextSlide();
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();
+});
+
+buildDots();
+goSlide(1);
+</script>
+</body>
+</html>
