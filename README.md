@@ -157,7 +157,7 @@ See [`ASN V7 Bootstrap Guide.md`](ASN%20V7%20Bootstrap%20Guide.md) for the full 
 
 **Michael Ryan Cadungog**
 Warehouse Manager — Grand Majesty Pharmaceutical, Inc.
-📧 whsmanager.gmpi@gmail.com
+📧 michaelryancadungog@gmail.com
 
 ---
 
