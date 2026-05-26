@@ -28,6 +28,18 @@
   --sh-sm:0 1px 4px rgba(0,0,0,.06);
   --t:.2s cubic-bezier(.4,0,.2,1);
 }
+body.dark{
+  --bg:#0A0705;--surface:#13110e;--surface2:#1a1611;
+  --border:rgba(201,168,76,.2);--border-lt:rgba(255,255,255,.07);
+  --tx:#EDE8E0;--tx2:rgba(237,232,224,.6);--tx3:rgba(237,232,224,.3);
+  --gold:#C9A84C;--gold-dk:#A07820;--gold-lt:rgba(201,168,76,.1);
+  --red:#C0181A;--red-dk:#8B0000;--red-lt:rgba(192,24,26,.12);
+  --green:#059669;--green-lt:rgba(5,150,105,.12);
+  --amber:#D97706;--amber-lt:rgba(217,119,6,.12);
+  --info:#0EA5E9;--info-lt:rgba(14,165,233,.12);
+  --danger:#DC2626;--danger-lt:rgba(220,38,38,.12);
+  --sh:0 1px 4px rgba(0,0,0,.4);--sh-sm:0 1px 2px rgba(0,0,0,.3);
+}
 html,body{height:100%;overflow-x:hidden}
 body{background:var(--bg);color:var(--tx);font-family:'Inter',sans-serif;font-size:13px;line-height:1.55}
 h1,h2,h3,h4,.jakarta{font-family:'Plus Jakarta Sans',sans-serif}
@@ -45,6 +57,8 @@ h1,h2,h3,h4,.jakarta{font-family:'Plus Jakarta Sans',sans-serif}
 .topbar-sub{font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.12em;margin-top:2px}
 .topbar-spacer{flex:1}
 .topbar-badge{font-size:11px;color:rgba(255,255,255,.5);background:rgba(255,255,255,.08);padding:4px 10px;border-radius:20px}
+.theme-toggle{background:none;border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:12px;cursor:pointer;color:var(--tx2);display:flex;align-items:center;gap:5px;transition:var(--t);font-family:'Inter',sans-serif;}
+.theme-toggle:hover{border-color:var(--gold);color:var(--gold);}
 .content{flex:1;padding:20px 16px;max-width:900px;width:100%;margin:0 auto}
 .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r-sm);border:none;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:var(--t);text-decoration:none;justify-content:center;white-space:nowrap}
 .btn-gold{background:var(--gold);color:#0A0705}.btn-gold:hover{background:var(--gold-dk)}
@@ -207,7 +221,7 @@ body.sales-mode .dispatch-only{display:none!important}
       <div class="role-card" onclick="goCustomer()"><div class="role-card-icon">📦</div><div class="role-card-name">Customer</div><div class="role-card-desc">Track my incoming orders</div></div>
       <div class="role-card" onclick="goSales()"><div class="role-card-icon">📊</div><div class="role-card-name">Sales</div><div class="role-card-desc">View delivery status</div></div>
     </div>
-    <p class="text-muted" style="margin-top:28px">GMPI © 2026 · Delivery Mgt System v7.0 <span id="v7-build" style="font-size:10px;opacity:.4;font-family:monospace">build v52</span></p>
+    <p class="text-muted" style="margin-top:28px">GMPI © 2026 · Delivery Mgt System v7.0 <span id="v7-build" style="font-size:10px;opacity:.4;font-family:monospace">build v53</span></p>
   </div>
 </section>
 
@@ -293,6 +307,7 @@ body.sales-mode .dispatch-only{display:none!important}
       <div id="hdr-uname" class="hdr-uname"></div>
       <div id="hdr-urole" class="hdr-urole"></div>
     </div>
+    <button class="theme-toggle" id="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
     <button class="btn btn-ghost btn-sm" style="color:rgba(255,255,255,.6);border-color:rgba(255,255,255,.15)" onclick="logout()">Sign Out</button>
   </div>
   <div class="tabs">
@@ -1315,9 +1330,17 @@ function goPersonnel(){show('v-personnel-login');['personnel-code-inp','personne
 function goCustomer(){show('v-customer-login');document.getElementById('cust-code-inp').value='';}
 function goSales(){show('v-sales-login');document.getElementById('sales-pin-inp').value='';document.getElementById('sales-login-err').textContent='';}
 function logout(){
+  var wasDark=document.body.classList.contains('dark');
   document.body.className='';
+  if(wasDark)document.body.classList.add('dark');
   S.role=null;S.user=null;S.personnelInfo=null;S.customerCode=null;S.changePasswordCtx=null;
   stopTrackerLive();show('v-landing');
+}
+function toggleTheme(){
+  var isDark=document.body.classList.toggle('dark');
+  localStorage.setItem('gmpi_asn_theme',isDark?'dark':'light');
+  var btn=document.getElementById('theme-toggle-btn');
+  if(btn)btn.textContent=isDark?'☀️ Light':'🌙 Dark';
 }
 function switchTab(name){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -1359,7 +1382,9 @@ async function doDispatchLogin(){
     unspin();
     if(!r.ok){errEl.textContent='Invalid code or password.';return;}
     S.role=r.role;S.user={code,name:r.name,role:r.role};
+    var wasDark2=document.body.classList.contains('dark');
     document.body.className=r.role==='superadmin'?'admin-mode':'';
+    if(wasDark2)document.body.classList.add('dark');
     document.getElementById('hdr-uname').textContent=r.name;
     document.getElementById('hdr-urole').textContent=r.role==='superadmin'?'Super Admin':'Dispatcher';
     if(r.mustChangePassword){
@@ -1384,7 +1409,9 @@ async function doEmergencyLogin(){
     unspin();
     if(!r.ok){errEl.textContent='Incorrect PIN.';return;}
     S.role='emergency';S.user={code:'EMERGENCY',name:'Emergency Access',role:'emergency'};
+    var wasDark3=document.body.classList.contains('dark');
     document.body.className='';
+    if(wasDark3)document.body.classList.add('dark');
     document.getElementById('hdr-uname').textContent='Emergency Access';
     document.getElementById('hdr-urole').textContent='Emergency';
     show('v-dispatch');loadPersonnelList();loadLeadTimes();loadSIStats();
@@ -2438,6 +2465,8 @@ async function voidSelectedDupes(gi,count){
   ]);
 }
 window.addEventListener('DOMContentLoaded',function(){
+  var saved=localStorage.getItem('gmpi_asn_theme')||'light';
+  if(saved==='dark'){document.body.classList.add('dark');var tb=document.getElementById('theme-toggle-btn');if(tb)tb.textContent='☀️ Light';}
   firebase.initializeApp({
     apiKey:"AIzaSyBrYLBg67AxE79WDx6PPWZKRhmZwSynhFc",
     authDomain:"gmpi-delivery-mgt-system.firebaseapp.com",
