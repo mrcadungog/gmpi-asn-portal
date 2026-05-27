@@ -90,3 +90,6 @@ Related: [[GMPI/ASN Portal/ASN Notes]] · [[GMPI/Firebase Migration Plan]]
 - **V6 GAS backend (Code_v6.gs) stays** — V7 still calls the same GAS functions
 - **Emergency PIN** ≠ dispatcher password — it's a separate shared override
 - Sales PIN is set in **Settings → 🔑 Sales PIN tab** after logging in as superadmin
+
+
+![[Pasted image 20260527085859.png]]
