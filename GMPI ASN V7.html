@@ -312,7 +312,7 @@ body.sales-mode .dispatch-only{display:none!important}
           <span class="lg-conn-text" id="lg-conn-text">Connecting&#x2026;</span>
         </div>
         <button class="theme-toggle" id="theme-toggle-btn" onclick="toggleTheme()">&#x1F319; Dark</button>
-        <div class="lg-copy">&#xA9; 2026 Grand Majesty Pharmaceutical Inc. &#xB7; <span id="v7-build">build v57</span></div>
+        <div class="lg-copy">&#xA9; 2026 Grand Majesty Pharmaceutical Inc. &#xB7; <span id="v7-build">build v58</span></div>
       </div>
     </div>
   </div>
@@ -2451,8 +2451,8 @@ async function voidSelectedDupes(gi,count){
     {label:'Void Duplicates',cls:'btn-danger',action:async()=>{spin();const r=await srv('bulkVoidASNs',toVoid,'Duplicate');unspin();if(r.ok){toast('Voided.','ok');loadDuplicates();}else toast('Error','err');}}
   ]);
 }
-// ═══ LOGIN v57 ═══════════════════════════════════════════════
-var AUTO_ROLE=(window.location.hash||'').replace('#','').replace(/[^a-z]/g,'')||'';
+// ═══ LOGIN v58 ═══════════════════════════════════════════════
+var AUTO_ROLE='<?!= autoRole ?>';
 var LG_SUBTITLES={staff:'Shipment & Delivery Management',sales:'Sales Order Tracking — View Only',customer:'Track Your Orders & Deliveries',emergency:'Emergency Access — Authorized Personnel Only'};
 function switchLoginTab(tab){
   document.querySelectorAll('.lg-tab').forEach(function(t){t.classList.remove('active');if(t.classList.contains(tab))t.classList.add('active');});

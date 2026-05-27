@@ -78,8 +78,11 @@ function doGet(e) {
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
       .addMetaTag('viewport', 'width=device-width,initial-scale=1.0,maximum-scale=1.0');
   }
-  // V7 — default (v57: AUTO_ROLE read from URL hash client-side, no injection needed)
-  return HtmlService.createHtmlOutputFromFile('GMPI ASN V7')
+  // V7 — default (v58: AUTO_ROLE injected via GAS template scriptlet from ?role= param)
+  var role = (e && e.parameter && e.parameter.role) ? e.parameter.role.replace(/[^a-z]/g, '') : '';
+  var tpl = HtmlService.createTemplateFromFile('GMPI ASN V7');
+  tpl.autoRole = role;
+  return tpl.evaluate()
     .setTitle('GMPI ASN Portal')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
     .addMetaTag('viewport', 'width=device-width,initial-scale=1.0,maximum-scale=1.0');
