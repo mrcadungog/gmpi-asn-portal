@@ -355,8 +355,8 @@ body.sales-mode .dispatch-only{display:none!important}
       <div id="hdr-uname" class="hdr-uname"></div>
       <div id="hdr-urole" class="hdr-urole"></div>
     </div>
-    <button class="theme-toggle" id="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
     <button class="btn btn-ghost btn-sm" style="color:rgba(255,255,255,.6);border-color:rgba(255,255,255,.15)" onclick="logout()">Sign Out</button>
+    <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark</button>
   </div>
   <div class="tabs">
     <div class="tab active dispatch-only" id="tab-upload" onclick="switchTab('upload')">📤 Upload</div>
@@ -747,6 +747,7 @@ body.sales-mode .dispatch-only{display:none!important}
     <div><div class="topbar-title">GMPI Delivery Mgt System</div><div class="topbar-sub">Sales View — Read Only</div></div>
     <div class="topbar-spacer"></div>
     <button class="btn btn-ghost btn-sm" style="color:rgba(255,255,255,.6);border-color:rgba(255,255,255,.15)" onclick="logout()">Sign Out</button>
+    <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark</button>
   </div>
   <div class="tabs">
     <div class="tab active" id="stab-deliveries" onclick="switchSalesTab('deliveries')">📋 Deliveries</div>
@@ -1328,8 +1329,8 @@ function logout(){
 function toggleTheme(){
   var isDark=document.body.classList.toggle('dark');
   localStorage.setItem('gmpi_asn_theme',isDark?'dark':'light');
-  var btn=document.getElementById('theme-toggle-btn');
-  if(btn)btn.textContent=isDark?'☀️ Light':'🌙 Dark';
+  var label=isDark?'☀️ Light':'🌙 Dark';
+  document.querySelectorAll('.theme-toggle,.lg-theme-btn').forEach(function(b){b.textContent=label;});
 }
 function switchTab(name){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -2515,7 +2516,7 @@ async function doStaffLogin(){
 // ═══════════════════════════════════════════════════════════════
 (function initApp(){
   var saved=localStorage.getItem('gmpi_asn_theme')||'light';
-  if(saved==='dark'){document.body.classList.add('dark');var tb=document.getElementById('theme-toggle-btn');if(tb)tb.textContent='☀️ Light';}
+  if(saved==='dark'){document.body.classList.add('dark');document.querySelectorAll('.theme-toggle,.lg-theme-btn').forEach(function(b){b.textContent='☀️ Light';});}
   var dot=document.getElementById('lg-conn-dot');
   var txt=document.getElementById('lg-conn-text');
   try{
